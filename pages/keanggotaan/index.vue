@@ -576,6 +576,12 @@ definePageMeta({
                     <div class="i-mdi-download w-3.5 h-3.5" />
                     Unduh Hasil {{ index + 1 }}
                   </NuxtLink>
+                  <NuxtLink :to="'/pengajuan/pemeriksaan-turnitin/' + file.id"
+                    class="btn bg-white border border-unpad text-unpad text-xs py-1.5 px-4 w-full text-center block mb-1.5 inline-flex items-center justify-center gap-1.5"
+                    target="_blank">
+                    <div class="i-mdi-file-document-outline w-3.5 h-3.5" />
+                    Surat Keterangan Pemeriksaan
+                  </NuxtLink>
                 </template>
                 <template v-else-if="file.status_pengajuan === 'ditolak'">
                   <p class="text-xs text-gray-5 mb-2">

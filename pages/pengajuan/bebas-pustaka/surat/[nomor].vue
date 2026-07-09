@@ -205,6 +205,15 @@ useHead({
         <div class="text-3 text-gray italic">
           <p>Surat Generated ID : {{ getDataSurat.id }}</p>
           <p>by Kandaga System</p>
+          <p class="mt-2 not-italic">
+            Untuk memverifikasi keaslian surat ini, silakan periksa pada
+            <NuxtLink
+              to="https://kandaga.unpad.ac.id/pengajuan/verify"
+              class="underline font-semibold"
+              >https://kandaga.unpad.ac.id/pengajuan/verify</NuxtLink
+            >
+            dengan menyertakan Surat Generated ID di atas.
+          </p>
         </div>
       </div>
     </article>
