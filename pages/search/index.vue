@@ -181,6 +181,7 @@ onMounted(() => {
 
 <template>
   <main class="min-h-screen bg-gray-50">
+
     <Head>
       <Title>
         {{ $t("pencarianHeadTitle") }} "{{ search.keywords }}" | GLAM Kandaga
@@ -191,23 +192,16 @@ onMounted(() => {
     <!-- Modal -->
     <LazyClientOnly>
       <Teleport to="#modal">
-        <ModalBase
-          v-show="previewItem.showModal"
-          @close="previewItem.viewModal"
-        >
+        <ModalBase v-show="previewItem.showModal" @close="previewItem.viewModal">
           <div @click.stop="" class="preview-block">
             <div class="flex flex-col items-center gap-2 text-center w-full">
-              <span
-                class="text-xs text-gray-4 font-mono bg-gray-1 px-2 py-0.5 rounded-full"
-              >
+              <span class="text-xs text-gray-4 font-mono bg-gray-1 px-2 py-0.5 rounded-full">
                 {{ selectedPreview?.MhsNPM }}
               </span>
               <p class="font-700 text-gray-8 text-base leading-snug">
                 {{ selectedPreview?.Judul }}
               </p>
-              <p
-                class="text-sm text-gray-6 text-justify leading-relaxed line-clamp-6"
-              >
+              <p class="text-sm text-gray-6 text-justify leading-relaxed line-clamp-6">
                 {{ selectedPreview?.AbstrakBersih ?? selectedPreview?.Abstrak }}
               </p>
               <p class="text-xs text-gray-4">
@@ -216,16 +210,12 @@ onMounted(() => {
               </p>
             </div>
             <div class="flex gap-2 mt-5 w-full justify-center">
-              <button
-                @click="previewItem.viewModal"
-                class="btn bg-gray-1 text-gray-6 px-5 py-2 text-sm hover:bg-gray-2 transition-colors"
-              >
+              <button @click="previewItem.viewModal"
+                class="btn bg-gray-1 text-gray-6 px-5 py-2 text-sm hover:bg-gray-2 transition-colors">
                 Tutup
               </button>
-              <NuxtLink
-                :to="'/koleksi/repository/item/' + selectedPreview?.MhsNPM"
-                class="btn bg-unpad text-white px-5 py-2 text-sm hover:opacity-90"
-              >
+              <NuxtLink :to="'/koleksi/repository/item/' + selectedPreview?.MhsNPM"
+                class="btn bg-unpad text-white px-5 py-2 text-sm hover:opacity-90">
                 Lihat Detail
               </NuxtLink>
             </div>
@@ -238,9 +228,7 @@ onMounted(() => {
     <div class="bg-gradient-to-br from-unpad to-kandaga">
       <div class="max-w-5xl ma px-4 pt-14 pb-24 text-center">
         <div class="i-mdi-magnify w-16 h-16 text-white/80 ma mb-4" />
-        <h1
-          class="text-white text-4xl sm:text-5xl font-800 m-0 mb-3 leading-tight"
-        >
+        <h1 class="text-white text-4xl sm:text-5xl font-800 m-0 mb-3 leading-tight">
           {{ $t("pencarianTerpaduTitle") }}
         </h1>
         <p class="text-white/85 text-base sm:text-lg max-w-2xl ma mt-2 mb-0">
@@ -256,39 +244,22 @@ onMounted(() => {
         <div class="flex gap-2">
           <div class="relative flex-1">
             <div
-              class="absolute left-3.5 top-1/2 -translate-y-1/2 i-mdi-magnify w-5 h-5 text-gray-4 pointer-events-none"
-            />
-            <input
-              type="search"
-              name="search"
-              id="searchBox"
-              :placeholder="$t('pencarianTerpaduPlaceholder')"
-              v-model="search.keywords"
-              @keyup.enter="submitSearch(search.keywords)"
-              autocomplete="off"
-              class="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-gray-2 hover:border-gray-3 focus:border-unpad outline-none text-sm bg-gray-50 focus:bg-white transition-all-200"
-            />
+              class="absolute left-3.5 top-1/2 -translate-y-1/2 i-mdi-magnify w-5 h-5 text-gray-4 pointer-events-none" />
+            <input type="search" name="search" id="searchBox" :placeholder="$t('pencarianTerpaduPlaceholder')"
+              v-model="search.keywords" @keyup.enter="submitSearch(search.keywords)" autocomplete="off"
+              class="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-gray-2 hover:border-gray-3 focus:border-unpad outline-none text-sm bg-gray-50 focus:bg-white transition-all-200" />
           </div>
-          <button
-            type="submit"
+          <button type="submit"
             class="btn bg-unpad text-white px-6 py-3 text-sm font-600 hover:opacity-90 transition-opacity shrink-0"
-            @click="submitSearch(search.keywords)"
-          >
+            @click="submitSearch(search.keywords)">
             Cari
           </button>
         </div>
         <p v-show="suggestion" class="text-sm text-gray-5 mt-3 mb-0">
           {{ $t("pencarianTerpaduResultRecommendation") }}
-          <span
-            class="text-blue-6 font-600 underline cursor-pointer"
-            @click="changeKeywords"
-            >{{ suggestion }}</span
-          >
+          <span class="text-blue-6 font-600 underline cursor-pointer" @click="changeKeywords">{{ suggestion }}</span>
         </p>
-        <p
-          v-show="!suggestion && search.keywords"
-          class="text-sm text-gray-5 mt-3 mb-0"
-        >
+        <p v-show="!suggestion && search.keywords" class="text-sm text-gray-5 mt-3 mb-0">
           {{ $t("pencarianTerpaduSearchResults") }}
           <span class="font-600 text-gray-8">{{ search.keywords }}</span>
         </p>
@@ -303,8 +274,7 @@ onMounted(() => {
           <div class="i-mdi-wikipedia section-icon" />
           <h2>
             Apa itu
-            <span class="text-unpad">{{ search.keywords }}</span
-            >?
+            <span class="text-unpad">{{ search.keywords }}</span>?
           </h2>
         </div>
         <div class="p-5 sm:p-6">
@@ -312,42 +282,27 @@ onMounted(() => {
             <div class="i-mdi-loading w-8 h-8 text-unpad animate-spin" />
             <p class="text-gray-5 mt-3 text-sm">Mencari data...</p>
           </div>
-          <div
-            v-else-if="
-              search.isResult && search.keywords && search.wikipediaDefinition
-            "
-            class="flex flex-col gap-3"
-          >
-            <NuxtLink
-              :to="`https://id.wikipedia.org?curid=${search.wikipediaDefinition?.pageid}`"
-              target="_blank"
-              class="no-underline"
-            >
-              <h3
-                class="text-lg font-700 text-gray-8 hover:text-unpad transition-colors m-0"
-              >
+          <div v-else-if="
+            search.isResult && search.keywords && search.wikipediaDefinition
+          " class="flex flex-col gap-3">
+            <NuxtLink :to="`https://id.wikipedia.org?curid=${search.wikipediaDefinition?.pageid}`" target="_blank"
+              class="no-underline">
+              <h3 class="text-lg font-700 text-gray-8 hover:text-unpad transition-colors m-0">
                 {{ search.wikipediaDefinition?.title }}
               </h3>
             </NuxtLink>
             <p class="text-sm text-gray-6 leading-relaxed m-0 text-left">
               <span v-html="search.wikipediaDefinition?.snippet"></span> ...
-              <NuxtLink
-                :to="`https://id.wikipedia.org?curid=${search.wikipediaDefinition?.pageid}`"
-                target="_blank"
-                class="text-unpad hover:underline font-500"
-              >
+              <NuxtLink :to="`https://id.wikipedia.org?curid=${search.wikipediaDefinition?.pageid}`" target="_blank"
+                class="text-unpad hover:underline font-500">
                 (baca selengkapnya)
               </NuxtLink>
             </p>
           </div>
-          <div
-            v-else-if="search.wikipediaDefinition === false"
-            class="empty-state"
-          >
+          <div v-else-if="search.wikipediaDefinition === false" class="empty-state">
             <div class="i-mdi-text-search w-12 h-12 text-gray-3" />
             <p class="text-gray-5 font-600 mt-3">
-              Kata kunci "<span class="text-red-5">{{ search.keywords }}</span
-              >" tidak ditemukan di Wikipedia
+              Kata kunci "<span class="text-red-5">{{ search.keywords }}</span>" tidak ditemukan di Wikipedia
             </p>
           </div>
           <div v-else class="empty-state">
@@ -370,33 +325,23 @@ onMounted(() => {
             <div class="i-mdi-loading w-8 h-8 text-unpad animate-spin" />
             <p class="text-gray-5 mt-3 text-sm">Mencari data...</p>
           </div>
-          <div
-            v-else-if="search.pustakaRes?.length > 0"
-            class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4"
-          >
-            <div
-              v-for="item in search.pustakaRes"
-              :key="item.id"
-              class="bg-white border border-gray-2 rounded-xl overflow-hidden shadow-sm flex flex-col"
-            >
+          <div v-else-if="search.pustakaRes?.length > 0" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div v-for="item in search.pustakaRes" :key="item.id"
+              class="bg-white border border-gray-2 rounded-xl overflow-hidden shadow-sm flex flex-col">
               <div class="flex gap-3 p-4 flex-1">
-                <NuxtImg
-                  :src="item?.thumbnail ?? '/images/default_cover.png'"
-                  class="w-20 h-28 object-cover rounded-lg border border-gray-2 shrink-0"
-                  format="webp"
-                />
+                <NuxtLink :to="`/koleksi/pustaka/${item?.id}`" class="block">
+                  <NuxtImg :src="item?.thumbnail ?? '/images/default_cover.png'"
+                    class="w-20 h-28 object-cover rounded-lg border border-gray-2 shrink-0" format="webp" />
+                </NuxtLink>
                 <div class="flex flex-col gap-1.5 flex-1 min-w-0 text-left">
-                  <p
-                    class="font-700 text-gray-8 text-sm leading-snug line-clamp-3"
-                  >
-                    {{
-                      item?.title ? trimTitle(item.title, 80) : "Belum ada data"
-                    }}
-                  </p>
-                  <p
-                    v-if="item?.creator?.creator_name"
-                    class="text-xs text-gray-5"
-                  >
+                  <NuxtLink :to="`/koleksi/pustaka/${item?.id}`">
+                    <p class="font-700 text-gray-8 text-sm leading-snug line-clamp-3">
+                      {{
+                        item?.title ? trimTitle(item.title, 80) : "Belum ada data"
+                      }}
+                    </p>
+                  </NuxtLink>
+                  <p v-if="item?.creator?.creator_name" class="text-xs text-gray-5">
                     <span class="font-600">Pengarang:</span>
                     {{ item.creator.creator_name }}
                   </p>
@@ -416,15 +361,17 @@ onMounted(() => {
                   </p>
                   <p class="text-xs text-gray-5">
                     <span class="font-600">Eksemplar:</span>
-                    {{ item?.items?.length ?? 0 }} item
+                    {{ item?.items_count ?? 0 }} item
+                  </p>
+                  <p class="text-xs text-gray-5">
+                    <span class="font-600 text-xs text-gray-5">Lokasi:</span>
+                    {{ item?.unit?.name ?? "-" }}
                   </p>
                 </div>
               </div>
               <div class="px-4 pb-4">
-                <NuxtLink
-                  :to="`/koleksi/pustaka/${item?.id}`"
-                  class="btn bg-unpad text-white text-sm w-full text-center block hover:opacity-90 transition-opacity"
-                >
+                <NuxtLink :to="`/koleksi/pustaka/${item?.id}`"
+                  class="btn bg-unpad text-white text-sm w-full text-center block hover:opacity-90 transition-opacity">
                   Lihat Koleksi
                 </NuxtLink>
               </div>
@@ -446,17 +393,10 @@ onMounted(() => {
           <h2>Hasil Pencarian Galeri</h2>
         </div>
         <div class="p-5 sm:p-6">
-          <div
-            v-if="galleryResult?.length > 0"
-            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"
-          >
-            <CollectionGLAMItems
-              v-bind="galeri"
-              v-for="galeri in galleryResult"
-              :key="galeri.id"
-              :abbr="true"
-              type_collection="gallery"
-            />
+          <div v-if="galleryResult?.length > 0"
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <CollectionGLAMItems v-bind="galeri" v-for="galeri in galleryResult" :key="galeri.id" :abbr="true"
+              type_collection="gallery" />
           </div>
           <div v-else class="empty-state">
             <div class="i-mdi-image-outline w-12 h-12 text-gray-3" />
@@ -474,17 +414,10 @@ onMounted(() => {
           <h2>Hasil Pencarian Museum</h2>
         </div>
         <div class="p-5 sm:p-6">
-          <div
-            v-if="museumResult?.length > 0"
-            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"
-          >
-            <CollectionGLAMItems
-              v-bind="museum"
-              v-for="museum in museumResult"
-              :key="museum.id"
-              :abbr="true"
-              type_collection="museum"
-            />
+          <div v-if="museumResult?.length > 0"
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <CollectionGLAMItems v-bind="museum" v-for="museum in museumResult" :key="museum.id" :abbr="true"
+              type_collection="museum" />
           </div>
           <div v-else class="empty-state">
             <div class="i-mdi-bank-outline w-12 h-12 text-gray-3" />
@@ -506,21 +439,11 @@ onMounted(() => {
             <div class="i-mdi-loading w-8 h-8 text-unpad animate-spin" />
             <p class="text-gray-5 mt-3 text-sm">Mencari data...</p>
           </div>
-          <div
-            v-else-if="repoSearch?.length > 0"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            <CollectionRepositoryCard
-              v-for="koleksi in repoSearch"
-              :key="koleksi.MhsNPM"
-              :npm="koleksi.MhsNPM"
-              :title="trimText(koleksi.Judul)"
-              :tipe="koleksi.tipeKoleksi"
-              :description="koleksi.AbstrakBersih ?? koleksi.Abstrak"
-              :keywords="koleksi.Keywords"
-              :link-access="'/koleksi/repository/item/' + koleksi.MhsNPM"
-              @preview="openModal(koleksi.MhsNPM)"
-            />
+          <div v-else-if="repoSearch?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <CollectionRepositoryCard v-for="koleksi in repoSearch" :key="koleksi.MhsNPM" :npm="koleksi.MhsNPM"
+              :title="trimText(koleksi.Judul)" :tipe="koleksi.tipeKoleksi"
+              :description="koleksi.AbstrakBersih ?? koleksi.Abstrak" :keywords="koleksi.Keywords"
+              :link-access="'/koleksi/repository/item/' + koleksi.MhsNPM" @preview="openModal(koleksi.MhsNPM)" />
           </div>
           <div v-else class="empty-state">
             <div class="i-mdi-text-search w-12 h-12 text-gray-3" />
@@ -542,15 +465,9 @@ onMounted(() => {
             <div class="i-mdi-loading w-8 h-8 text-unpad animate-spin" />
             <p class="text-gray-5 mt-3 text-sm">Mencari data...</p>
           </div>
-          <div
-            v-else-if="scopus.scopusObjects"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            <div
-              v-for="result in scopus.scopusObjects['search-results']['entry']"
-              :key="result['eid']"
-              class="bg-white border border-gray-2 rounded-xl p-5 flex flex-col gap-2 shadow-sm"
-            >
+          <div v-else-if="scopus.scopusObjects" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-for="result in scopus.scopusObjects['search-results']['entry']" :key="result['eid']"
+              class="bg-white border border-gray-2 rounded-xl p-5 flex flex-col gap-2 shadow-sm">
               <p class="font-700 text-gray-8 text-sm leading-snug line-clamp-3">
                 {{ result["dc:title"] }}
               </p>
@@ -575,11 +492,9 @@ onMounted(() => {
                 </p>
               </div>
               <div class="mt-auto pt-2">
-                <NuxtLink
-                  :to="`https://www.scopus.com/record/display.uri?eid=${result['eid']}&origin=resultslist`"
+                <NuxtLink :to="`https://www.scopus.com/record/display.uri?eid=${result['eid']}&origin=resultslist`"
                   target="_blank"
-                  class="btn bg-unpad text-white text-xs py-1.5 px-4 hover:opacity-90 transition-opacity"
-                >
+                  class="btn bg-unpad text-white text-xs py-1.5 px-4 hover:opacity-90 transition-opacity">
                   Akses
                 </NuxtLink>
               </div>
@@ -595,30 +510,19 @@ onMounted(() => {
 
     <!-- Sticky bottom search bar -->
     <Transition name="fade">
-      <div
-        v-show="portPosition >= 200 && bottomPort === false"
-        class="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-2 shadow-lg py-3 px-4 z-20"
-      >
+      <div v-show="portPosition >= 200 && bottomPort === false"
+        class="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-2 shadow-lg py-3 px-4 z-20">
         <div class="max-w-3xl ma flex items-center gap-2">
           <div class="relative flex-1">
             <div
-              class="absolute left-3.5 top-1/2 -translate-y-1/2 i-mdi-magnify w-4 h-4 text-gray-4 pointer-events-none"
-            />
-            <input
-              type="search"
-              name="search"
-              :placeholder="$t('pencarianTerpaduPlaceholder')"
-              v-model="search.keywords"
-              @keyup.enter="submitSearch(search.keywords)"
-              autocomplete="off"
-              class="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-gray-2 focus:border-unpad outline-none text-sm bg-gray-50 focus:bg-white transition-all-200"
-            />
+              class="absolute left-3.5 top-1/2 -translate-y-1/2 i-mdi-magnify w-4 h-4 text-gray-4 pointer-events-none" />
+            <input type="search" name="search" :placeholder="$t('pencarianTerpaduPlaceholder')"
+              v-model="search.keywords" @keyup.enter="submitSearch(search.keywords)" autocomplete="off"
+              class="w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-gray-2 focus:border-unpad outline-none text-sm bg-gray-50 focus:bg-white transition-all-200" />
           </div>
-          <button
-            type="submit"
+          <button type="submit"
             class="btn bg-unpad text-white px-5 py-2.5 text-sm font-600 hover:opacity-90 transition-opacity shrink-0"
-            @click="submitSearch(search.keywords)"
-          >
+            @click="submitSearch(search.keywords)">
             Cari
           </button>
         </div>
@@ -629,8 +533,7 @@ onMounted(() => {
 
 <style scoped>
 .section-card {
-  --at-apply: bg-white rounded-2xl shadow-sm border border-gray-2
-    overflow-hidden;
+  --at-apply: bg-white rounded-2xl shadow-sm border border-gray-2 overflow-hidden;
 }
 
 /* prettier-ignore */
@@ -651,8 +554,7 @@ onMounted(() => {
 }
 
 .preview-block {
-  --at-apply: max-w-2xl flex flex-col items-center bg-white w-full max-h-[85vh]
-    overflow-y-auto py-6 px-6 rounded-2xl;
+  --at-apply: max-w-2xl flex flex-col items-center bg-white w-full max-h-[85vh] overflow-y-auto py-6 px-6 rounded-2xl;
 }
 
 .fade-enter-active,

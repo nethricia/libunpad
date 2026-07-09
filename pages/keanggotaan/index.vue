@@ -1,7 +1,10 @@
 <script setup>
+import { readUsers } from "@directus/sdk";
+
 const { logout } = useDirectusAuth();
 const user = useDirectusUser();
 const { getItems } = useDirectusItems();
+const { $directus } = useNuxtApp();
 const { data, status, signOut } = useAuth();
 
 const getBebasPustaka = await getItems({
@@ -22,15 +25,82 @@ const getPeminjamanRuangan = await getItems({
   },
 }).catch(() => []);
 
-const getDataTurnitin = await getItems({
-  collection: "pengajuan_pemeriksaan_turnitin",
-  params: {
-    filter: {
-      email: data?.value?.user?.email,
+const petugasNameCache = ref({});
+const turnitinItems = ref([]);
+const turnitinPage = ref(1);
+const turnitinPerPage = 6;
+const turnitinTotalItems = ref(0);
+const turnitinTotalPages = ref(1);
+
+const getPetugasName = (userId) => {
+  if (!userId) return "—";
+  return petugasNameCache.value[userId] ?? "—";
+};
+
+const loadPetugasNames = async (items) => {
+  const userIds = [...new Set(items.map((item) => item.user_updated).filter(Boolean))];
+
+  if (!userIds.length) return;
+
+  const usersResponse = await $directus.request(
+    readUsers({
+      filter: {
+        id: {
+          _in: userIds,
+        },
+      },
+      fields: ["id", "first_name", "last_name"],
+    }),
+  );
+
+  console.log("petugas users response", usersResponse);
+
+  const users = Array.isArray(usersResponse) ? usersResponse : usersResponse?.data ?? [];
+
+  users.forEach((userEntry) => {
+    petugasNameCache.value[userEntry.id] = userEntry.first_name
+      ? `${userEntry.first_name} ${userEntry.last_name || ""}`.trim()
+      : "—";
+  });
+};
+
+const fetchTurnitinData = async () => {
+  const response = await getItems({
+    collection: "pengajuan_pemeriksaan_turnitin",
+    params: {
+      filter: {
+        email: data?.value?.user?.email,
+      },
+      fields: ["*", "berkas_hasil_pemeriksaan.*"],
+      limit: turnitinPerPage,
+      offset: (turnitinPage.value - 1) * turnitinPerPage,
+      meta: "filter_count",
+      sort: "-date_created",
     },
-    fields: ["*", "berkas_hasil_pemeriksaan.*"],
-  },
-}).catch(() => []);
+  }).catch(() => []);
+
+  turnitinItems.value = Array.isArray(response) ? response : response?.data ?? [];
+  await loadPetugasNames(turnitinItems.value);
+  turnitinTotalItems.value =
+    response?.meta?.filter_count ??
+    (Array.isArray(response) ? response.length : 0);
+  turnitinTotalPages.value = Math.max(
+    1,
+    Math.ceil(turnitinTotalItems.value / turnitinPerPage),
+  );
+
+  if (turnitinPage.value > turnitinTotalPages.value) {
+    turnitinPage.value = turnitinTotalPages.value;
+    await fetchTurnitinData();
+  }
+};
+
+await fetchTurnitinData();
+
+const changeTurnitinPage = async (page) => {
+  turnitinPage.value = Math.max(1, Math.min(page, turnitinTotalPages.value));
+  await fetchTurnitinData();
+};
 
 const isPegawai = computed(() => {
   let state = null;
@@ -93,54 +163,37 @@ definePageMeta({
         <div class="flex flex-col sm:flex-row items-center sm:items-end gap-5">
           <!-- Avatar -->
           <div class="relative shrink-0">
-            <img
-              v-if="user"
-              :src="
-                user.avatar
-                  ? `https://kandaga.unpad.ac.id/backoffice/assets/${user.avatar}.jpg`
-                  : 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg'
-              "
-              :alt="user?.first_name"
-              class="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-2xl border-4 border-white/60 shadow-lg"
-            />
-            <NuxtImg
-              v-else-if="status === 'authenticated'"
-              :src="data.user.image"
-              class="w-24 h-24 rounded-2xl border-4 border-white/60 shadow-lg object-cover"
-            />
+            <img v-if="user" :src="user.avatar
+              ? `https://kandaga.unpad.ac.id/backoffice/assets/${user.avatar}.jpg`
+              : 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg'
+              " :alt="user?.first_name"
+              class="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-2xl border-4 border-white/60 shadow-lg" />
+            <NuxtImg v-else-if="status === 'authenticated'" :src="data.user.image"
+              class="w-24 h-24 rounded-2xl border-4 border-white/60 shadow-lg object-cover" />
           </div>
           <!-- Identity -->
           <div class="text-center sm:text-left pb-1">
-            <p
-              class="text-white/70 text-sm font-medium uppercase tracking-widest mb-0.5"
-            >
+            <p class="text-white/70 text-sm font-medium uppercase tracking-widest mb-0.5">
               Anggota Perpustakaan
             </p>
             <h1 class="text-white text-2xl sm:text-3xl font-800 leading-tight">
-              <template v-if="user"
-                >{{ user.first_name }} {{ user.last_name }}</template
-              >
+              <template v-if="user">{{ user.first_name }} {{ user.last_name }}</template>
               <template v-else-if="status === 'authenticated'">{{
                 data.user.name
-              }}</template>
+                }}</template>
             </h1>
             <p class="text-white/80 text-sm mt-1">
               <template v-if="user">{{ user.email }}</template>
               <template v-else-if="status === 'authenticated'">{{
                 data.user.email
-              }}</template>
+                }}</template>
             </p>
-            <span
-              v-if="user?.title"
-              class="inline-block mt-2 text-xs bg-white/20 text-white px-3 py-0.5 rounded-full font-semibold"
-            >
+            <span v-if="user?.title"
+              class="inline-block mt-2 text-xs bg-white/20 text-white px-3 py-0.5 rounded-full font-semibold">
               {{ user.title }}
             </span>
             <!-- PAuS-specific identity chips -->
-            <div
-              v-if="status === 'authenticated' && data?.user?.identifier"
-              class="flex flex-wrap gap-1.5 mt-2"
-            >
+            <div v-if="status === 'authenticated' && data?.user?.identifier" class="flex flex-wrap gap-1.5 mt-2">
               <span class="paus-chip">
                 <span class="opacity-70">ID:</span> {{ data.user.identifier }}
               </span>
@@ -153,10 +206,7 @@ definePageMeta({
               <span v-if="data.user.jenjang" class="paus-chip">
                 {{ data.user.jenjang }}
               </span>
-              <span
-                v-if="data.user.faculty || data.user.unit"
-                class="paus-chip"
-              >
+              <span v-if="data.user.faculty || data.user.unit" class="paus-chip">
                 {{ data.user.faculty ?? data.user.unit }}
               </span>
               <span v-if="data.user.study_program" class="paus-chip">
@@ -166,33 +216,20 @@ definePageMeta({
           </div>
           <!-- Action buttons top-right -->
           <div class="sm:ml-auto flex flex-wrap justify-center gap-2 pb-1">
-            <NuxtLink
-              v-show="isPegawai"
-              to="/dashboard"
-              class="btn bg-white/20 hover:bg-white/30 text-white border border-white/30 text-sm py-1.5 transition-all-200"
-            >
+            <NuxtLink v-show="isPegawai" to="/dashboard"
+              class="btn bg-white/20 hover:bg-white/30 text-white border border-white/30 text-sm py-1.5 transition-all-200">
               Dashboard
             </NuxtLink>
-            <NuxtLink
-              to="/pengajuan"
-              class="btn bg-white/20 hover:bg-white/30 text-white border border-white/30 text-sm py-1.5 transition-all-200"
-            >
+            <NuxtLink to="/pengajuan"
+              class="btn bg-white/20 hover:bg-white/30 text-white border border-white/30 text-sm py-1.5 transition-all-200">
               Pengajuan Lain
             </NuxtLink>
-            <button
-              v-show="user"
-              type="button"
-              class="btn bg-red-5/80 hover:bg-red-6 text-white text-sm py-1.5 transition-all-200"
-              @click="onLogout"
-            >
+            <button v-show="user" type="button"
+              class="btn bg-red-5/80 hover:bg-red-6 text-white text-sm py-1.5 transition-all-200" @click="onLogout">
               Logout
             </button>
-            <button
-              v-show="!user && status"
-              type="button"
-              class="btn bg-red-5/80 hover:bg-red-6 text-white text-sm py-1.5 transition-all-200"
-              @click="signOut()"
-            >
+            <button v-show="!user && status" type="button"
+              class="btn bg-red-5/80 hover:bg-red-6 text-white text-sm py-1.5 transition-all-200" @click="signOut()">
               Logout
             </button>
           </div>
@@ -201,37 +238,26 @@ definePageMeta({
     </div>
 
     <!-- Logged-out fallback -->
-    <div
-      v-if="!user && status !== 'authenticated'"
-      class="max-w-md ma mt-20 text-center px-4"
-    >
+    <div v-if="!user && status !== 'authenticated'" class="max-w-md ma mt-20 text-center px-4">
       <div class="bg-white rounded-2xl shadow-md p-10">
-        <div
-          class="i-mdi-account-circle-outline text-unpad w-16 h-16 ma mb-4"
-        />
+        <div class="i-mdi-account-circle-outline text-unpad w-16 h-16 ma mb-4" />
         <h2 class="text-xl font-700 mb-2">Sesi Berakhir</h2>
         <p class="text-gray-5 mb-6">
           Akun sedang keluar. Memindahkan ke halaman login...
         </p>
-        <NuxtLink to="/login" class="btn bg-unpad text-white px-6 py-2"
-          >Login</NuxtLink
-        >
+        <NuxtLink to="/login" class="btn bg-unpad text-white px-6 py-2">Login</NuxtLink>
       </div>
     </div>
 
     <!-- Main content (authenticated) -->
     <div v-else class="max-w-5xl ma px-4 py-8 flex flex-col gap-6">
       <!-- ═══ CARD: PAuS Identity (SSO users only) ═══ -->
-      <div
-        v-if="status === 'authenticated' && data?.user?.identifier"
-        class="section-card"
-      >
+      <div v-if="status === 'authenticated' && data?.user?.identifier" class="section-card">
         <div class="section-card-header">
           <div class="i-mdi-account-badge-outline section-icon" />
           <h2>Identitas Akun PAuS</h2>
           <span
-            class="ml-auto text-xs bg-unpad/10 text-unpad border border-unpad/20 px-2.5 py-0.5 rounded-full font-semibold capitalize"
-          >
+            class="ml-auto text-xs bg-unpad/10 text-unpad border border-unpad/20 px-2.5 py-0.5 rounded-full font-semibold capitalize">
             {{ data.user.type ?? "PAuS SSO" }}
           </span>
         </div>
@@ -282,17 +308,12 @@ definePageMeta({
           <h2>Surat Bebas Pustaka</h2>
         </div>
 
-        <div
-          v-if="getBebasPustaka.length > 0"
-          class="p-5 sm:p-6 flex flex-col gap-5"
-        >
+        <div v-if="getBebasPustaka.length > 0" class="p-5 sm:p-6 flex flex-col gap-5">
           <!-- Status badge -->
           <div class="flex items-center gap-3 flex-wrap">
             <span class="text-sm text-gray-5 font-medium">Status:</span>
-            <span
-              :class="bebasPustakaBanner(getBebasPustaka[0]?.status_pengajuan)"
-              class="px-3 py-0.5 text-sm rounded-full"
-            >
+            <span :class="bebasPustakaBanner(getBebasPustaka[0]?.status_pengajuan)"
+              class="px-3 py-0.5 text-sm rounded-full">
               {{
                 displayStatusPengajuanSurat(
                   getBebasPustaka[0]?.status_pengajuan,
@@ -302,13 +323,8 @@ definePageMeta({
           </div>
 
           <!-- Requirements -->
-          <div
-            v-if="getBebasPustaka[0]?.persyaratan?.length === 0"
-            class="info-box"
-          >
-            <div
-              class="i-mdi-clock-outline w-4 h-4 shrink-0 mt-0.5 text-yellow-6"
-            />
+          <div v-if="getBebasPustaka[0]?.persyaratan?.length === 0" class="info-box">
+            <div class="i-mdi-clock-outline w-4 h-4 shrink-0 mt-0.5 text-yellow-6" />
             <p class="text-sm">Kelengkapan sedang diperiksa oleh petugas.</p>
           </div>
           <div v-else class="flex flex-col gap-2">
@@ -316,71 +332,47 @@ definePageMeta({
               Kelengkapan Persyaratan:
             </p>
             <div class="flex flex-col gap-2">
-              <div
-                class="req-row"
-                :class="
-                  getBebasPustaka[0].persyaratan?.includes('denda')
-                    ? 'req-ok'
-                    : 'req-fail'
-                "
-              >
-                <div
-                  :class="
-                    getBebasPustaka[0].persyaratan?.includes('denda')
-                      ? 'i-mdi-check-circle'
-                      : 'i-mdi-close-circle'
-                  "
-                  class="w-5 h-5 shrink-0"
-                />
+              <div class="req-row" :class="getBebasPustaka[0].persyaratan?.includes('denda')
+                ? 'req-ok'
+                : 'req-fail'
+                ">
+                <div :class="getBebasPustaka[0].persyaratan?.includes('denda')
+                  ? 'i-mdi-check-circle'
+                  : 'i-mdi-close-circle'
+                  " class="w-5 h-5 shrink-0" />
                 <span>{{
                   getBebasPustaka[0].persyaratan?.includes("denda")
                     ? "Tidak ada denda"
-                    : "Masih ada denda yang belum dibayar"
+                    : "Sedang diproses atau Masih ada denda yang belum dibayar"
                 }}</span>
               </div>
-              <div
-                class="req-row"
-                :class="
-                  getBebasPustaka[0].persyaratan?.includes('peminjaman')
-                    ? 'req-ok'
-                    : 'req-fail'
-                "
-              >
-                <div
-                  :class="
-                    getBebasPustaka[0].persyaratan?.includes('peminjaman')
-                      ? 'i-mdi-check-circle'
-                      : 'i-mdi-close-circle'
-                  "
-                  class="w-5 h-5 shrink-0"
-                />
+              <div class="req-row" :class="getBebasPustaka[0].persyaratan?.includes('peminjaman')
+                ? 'req-ok'
+                : 'req-fail'
+                ">
+                <div :class="getBebasPustaka[0].persyaratan?.includes('peminjaman')
+                  ? 'i-mdi-check-circle'
+                  : 'i-mdi-close-circle'
+                  " class="w-5 h-5 shrink-0" />
                 <span>{{
                   getBebasPustaka[0].persyaratan?.includes("peminjaman")
                     ? "Tidak ada buku yang sedang dipinjam"
-                    : "Masih ada buku yang belum dikembalikan"
+                    : "Sedang diproses atau Masih ada buku yang belum dikembalikan"
                 }}</span>
               </div>
             </div>
 
             <!-- Download button -->
             <div class="mt-2">
-              <NuxtLink
-                v-if="
-                  getBebasPustaka[0]?.status_pengajuan === 'selesai' &&
-                  getBebasPustaka[0]?.persyaratan?.length > 0
-                "
-                :to="'/pengajuan/bebas-pustaka/surat/' + getBebasPustaka[0].id"
-                class="btn bg-unpad text-white py-2 px-6 inline-flex items-center gap-2"
-                target="_blank"
-              >
+              <NuxtLink v-if="
+                getBebasPustaka[0]?.status_pengajuan === 'selesai' &&
+                getBebasPustaka[0]?.persyaratan?.length > 0
+              " :to="'/pengajuan/bebas-pustaka/surat/' + getBebasPustaka[0].id"
+                class="btn bg-unpad text-white py-2 px-6 inline-flex items-center gap-2" target="_blank">
                 <div class="i-mdi-download w-4 h-4" />
                 Unduh Surat
               </NuxtLink>
-              <button
-                v-else
-                class="btn bg-gray-2 text-gray-4 py-2 px-6 cursor-not-allowed"
-                disabled
-              >
+              <button v-else class="btn bg-gray-2 text-gray-4 py-2 px-6 cursor-not-allowed" disabled>
                 Surat belum dapat diunduh
               </button>
             </div>
@@ -393,40 +385,21 @@ definePageMeta({
               <p class="font-semibold text-gray-7">Kendala? Hubungi petugas:</p>
               <p>
                 Pak Taufik:
-                <a href="tel:085721738333" class="text-unpad font-medium"
-                  >+62 857-2173-8333</a
-                >
-              </p>
-              <p>
-                Bu Aning:
-                <a href="tel:081394503080" class="text-unpad font-medium"
-                  >+62 813-9450-3080</a
-                >
+                <a href="tel:085721738333" class="text-unpad font-medium">+62 857-2173-8333</a>
               </p>
             </div>
           </div>
 
           <!-- S2/S3 note -->
           <div class="info-box bg-yellow-50 border-yellow-2">
-            <div
-              class="i-mdi-information-outline w-4 h-4 shrink-0 text-yellow-6 mt-0.5"
-            />
+            <div class="i-mdi-information-outline w-4 h-4 shrink-0 text-yellow-6 mt-0.5" />
             <p class="text-xs text-gray-6 leading-relaxed">
               Mahasiswa S2/S3 yang akunnya tergabung dengan jenjang sebelumnya,
               hubungi
-              <a
-                href="mailto:chrisna.adhi@unpad.ac.id"
-                target="_blank"
-                class="text-unpad font-medium"
-                >chrisna.adhi@unpad.ac.id</a
-              >
+              <a href="mailto:chrisna.adhi@unpad.ac.id" target="_blank"
+                class="text-unpad font-medium">chrisna.adhi@unpad.ac.id</a>
               atau
-              <a
-                href="https://wa.me/6281573710645"
-                target="_blank"
-                class="text-unpad font-medium"
-                >WhatsApp</a
-              >
+              <a href="https://wa.me/6281573710645" target="_blank" class="text-unpad font-medium">WhatsApp</a>
               dengan melampirkan email Unpad Anda.
             </p>
           </div>
@@ -435,10 +408,7 @@ definePageMeta({
         <div v-else class="empty-state">
           <div class="i-mdi-file-outline w-10 h-10 text-gray-3 ma mb-3" />
           <p class="text-gray-4 italic">Belum ada pengajuan bebas pustaka.</p>
-          <NuxtLink
-            to="/pengajuan/bebas-pustaka"
-            class="btn bg-unpad text-white mt-3 text-sm py-1.5 px-5"
-          >
+          <NuxtLink to="/pengajuan/bebas-pustaka" class="btn bg-unpad text-white mt-3 text-sm py-1.5 px-5">
             Ajukan Sekarang
           </NuxtLink>
         </div>
@@ -453,11 +423,8 @@ definePageMeta({
 
         <div v-if="getPeminjamanRuangan.length > 0" class="p-5 sm:p-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div
-              v-for="ruang in getPeminjamanRuangan"
-              :key="ruang.id"
-              class="bg-gray-50 border border-gray-2 rounded-xl p-4 flex flex-col gap-2"
-            >
+            <div v-for="ruang in getPeminjamanRuangan" :key="ruang.id"
+              class="bg-gray-50 border border-gray-2 rounded-xl p-4 flex flex-col gap-2">
               <p class="font-semibold text-sm text-gray-8 leading-tight">
                 {{ definePeminjamanRuangan(ruang.nama_ruangan) }}
               </p>
@@ -466,10 +433,8 @@ definePageMeta({
                 {{ ruang.jam_mulai_peminjaman }} —
                 {{ ruang.jam_selesai_peminjaman }}
               </div>
-              <span
-                class="self-start text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize"
-                :class="displayStatusPeminjamanRuangan(ruang.status_peminjaman)"
-              >
+              <span class="self-start text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize"
+                :class="displayStatusPeminjamanRuangan(ruang.status_peminjaman)">
                 {{ ruang.status_peminjaman }}
               </span>
             </div>
@@ -489,10 +454,8 @@ definePageMeta({
         <div class="section-card-header">
           <div class="i-mdi-file-document-edit-outline section-icon" />
           <h2>Pemeriksaan Turnitin</h2>
-          <NuxtLink
-            href="/pengajuan/pemeriksaan-turnitin"
-            class="ml-auto btn bg-unpad text-white text-xs py-1.5 px-4 shrink-0"
-          >
+          <NuxtLink href="/pengajuan/pemeriksaan-turnitin"
+            class="ml-auto btn bg-unpad text-white text-xs py-1.5 px-4 shrink-0">
             + Ajukan Baru
           </NuxtLink>
         </div>
@@ -500,33 +463,22 @@ definePageMeta({
         <!-- Info strip -->
         <div class="px-5 sm:px-6 pt-5 flex flex-col gap-3">
           <div class="info-box bg-blue-50 border-blue-2">
-            <div
-              class="i-mdi-book-open-variant w-4 h-4 shrink-0 text-blue-5 mt-0.5"
-            />
+            <div class="i-mdi-book-open-variant w-4 h-4 shrink-0 text-blue-5 mt-0.5" />
             <p class="text-xs text-gray-6">
               Panduan cara pengutipan tersedia di
-              <a
-                href="https://penerbitdeepublish.com/wp-content/uploads/2017/01/Pedoman-Menulis-Buku-Tanpa-Plagiarisme-oleh-Penerbit-Deepublish.pdf"
-                target="_blank"
-                class="text-blue-6 font-medium"
-                >E-Book Pedoman Menulis Tanpa Plagiarisme</a
-              >. Pastikan similarity &lt; 20%.
+              <a href="https://penerbitdeepublish.com/wp-content/uploads/2017/01/Pedoman-Menulis-Buku-Tanpa-Plagiarisme-oleh-Penerbit-Deepublish.pdf"
+                target="_blank" class="text-blue-6 font-medium">E-Book Pedoman Menulis Tanpa Plagiarisme</a>. Pastikan
+              similarity &lt; 20%.
             </p>
           </div>
-          <div
-            class="info-box bg-gray-50 border-gray-2 flex-col items-start gap-2"
-          >
+          <div class="info-box bg-gray-50 border-gray-2 flex-col items-start gap-2">
             <div class="flex items-center gap-2">
-              <div
-                class="i-mdi-information-outline w-4 h-4 shrink-0 text-gray-5"
-              />
+              <div class="i-mdi-information-outline w-4 h-4 shrink-0 text-gray-5" />
               <p class="text-xs font-semibold text-gray-6">
                 Panduan Pemeriksaan Turnitin:
               </p>
             </div>
-            <ol
-              class="text-left text-xs text-gray-6 list-decimal pl-4 flex flex-col gap-1"
-            >
+            <ol class="text-left text-xs text-gray-6 list-decimal pl-4 flex flex-col gap-1">
               <li>Wajib melampirkan Cover dari karya tersebut</li>
               <li>
                 Kata-kata atau kalimat yang diwarnai bersumber pada website yang
@@ -555,90 +507,117 @@ definePageMeta({
         </div>
 
         <!-- Submission list -->
-        <div
-          v-if="getDataTurnitin.length > 0"
-          class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
-          <div
-            v-for="file in getDataTurnitin"
-            :key="file.id"
-            class="bg-white border border-gray-2 rounded-xl p-5 flex flex-col gap-3 shadow-sm"
-          >
-            <!-- Title -->
-            <p class="font-semibold text-gray-8 text-sm leading-snug">
-              {{ file.judul_karya_tulis ?? "—" }}
-            </p>
+        <div v-if="turnitinItems.length > 0" class="p-5 sm:p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="file in turnitinItems" :key="file.id"
+              class="bg-white border border-gray-2 rounded-xl p-5 flex flex-col gap-3 shadow-sm">
+              <!-- Title -->
+              <p class="font-semibold text-gray-8 text-sm leading-snug">
+                {{ file.judul_karya_tulis ?? "—" }}
+              </p>
 
-            <!-- Status -->
-            <div class="flex items-center gap-2 flex-wrap">
-              <span
-                :class="bebasPustakaBanner(file.status_pengajuan)"
-                class="text-xs px-2.5 py-0.5 rounded-full"
-              >
-                {{ displayStatusPengajuanSurat(file.status_pengajuan) }}
-              </span>
-              <span
-                v-if="file.similarity_number"
-                class="text-xs bg-blue-1 text-blue-7 border border-blue-2 px-2.5 py-0.5 rounded-full font-semibold"
-              >
-                Similarity: {{ file.similarity_number }}
-              </span>
-            </div>
-
-            <!-- Meta info -->
-            <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-5">
-              <div class="flex items-center gap-1">
-                <div class="i-mdi-calendar-outline w-3.5 h-3.5 shrink-0" />
-                <span>{{ convertTimeZone(file.date_created) ?? "—" }}</span>
+              <!-- Status -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <span :class="bebasPustakaBanner(file.status_pengajuan)" class="text-xs px-2.5 py-0.5 rounded-full">
+                  {{ displayStatusPengajuanSurat(file.status_pengajuan) }}
+                </span>
+                <span v-if="file.similarity_number"
+                  class="text-xs bg-blue-1 text-blue-7 border border-blue-2 px-2.5 py-0.5 rounded-full font-semibold">
+                  Similarity: {{ file.similarity_number }}
+                </span>
               </div>
-              <div v-if="file.date_updated" class="flex items-center gap-1">
-                <div class="i-mdi-check-circle-outline w-3.5 h-3.5 shrink-0" />
-                <span>{{ convertTimeZone(file.date_updated) ?? "—" }}</span>
+
+              <!-- Meta info -->
+              <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-3 text-gray-5">
+                <div class="flex items-center gap-1">
+                  <div class="i-mdi-calendar-outline w-3.5 h-3.5 shrink-0" />
+                  <span>
+                    Diajukan: <br />
+                    <span class="italic font-semibold">
+                      {{ convertTimeZone(file.date_created) ?? "—" }}
+                    </span>
+                  </span>
+                </div>
+                <div v-if="file.date_updated" class="flex items-center gap-1">
+                  <div class="i-mdi-check-circle-outline w-3.5 h-3.5 shrink-0" />
+                  <span>
+                    Diperbarui: <br />
+                    <span class="italic font-semibold">
+                      {{ convertTimeZone(file.date_updated) ?? "—" }}
+                    </span>
+                  </span>
+                </div>
+                <div v-if="file.user_updated" class="flex items-center gap-1">
+                  <div class="i-mdi-file-document-outline w-3.5 h-3.5 shrink-0" />
+                  <span>Petugas:
+                    <span class="italic font-semibold">
+                      {{ getPetugasName(file.user_updated) ?? "-" }}
+                    </span>
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <!-- Keterangan -->
-            <p
-              v-if="file.keterangan"
-              class="text-xs text-gray-6 bg-gray-50 rounded-lg px-3 py-2 border border-gray-2"
-            >
-              {{ file.keterangan }}
-            </p>
+              <!-- Keterangan -->
+              <p v-if="file.keterangan"
+                class="text-xs text-gray-6 bg-gray-50 rounded-lg px-3 py-2 border border-gray-2">
+                {{ file.keterangan }}
+              </p>
 
-            <!-- Download or re-submit -->
-            <div class="mt-auto pt-1">
-              <template
-                v-if="
+              <!-- Download or re-submit -->
+              <div class="mt-auto pt-1">
+                <template v-if="
                   file.berkas_hasil_pemeriksaan?.length > 0 &&
                   file.status_pengajuan === 'selesai'
-                "
-              >
-                <NuxtLink
-                  v-for="(item, index) in file.berkas_hasil_pemeriksaan"
-                  :key="item.directus_files_id"
-                  :href="`https://kandaga.unpad.ac.id/backoffice/assets/${item.directus_files_id}?download`"
-                  class="btn bg-unpad text-white text-xs py-1.5 px-4 w-full text-center block mb-1.5 inline-flex items-center justify-center gap-1.5"
-                  target="_blank"
-                >
-                  <div class="i-mdi-download w-3.5 h-3.5" />
-                  Unduh Hasil {{ index + 1 }}
-                </NuxtLink>
-              </template>
-              <template v-else-if="file.status_pengajuan === 'ditolak'">
-                <p class="text-xs text-gray-5 mb-2">
-                  Silahkan cek keterangan penolakan di atas.
+                ">
+                  <NuxtLink v-for="(item, index) in file.berkas_hasil_pemeriksaan" :key="item.directus_files_id"
+                    :href="`https://kandaga.unpad.ac.id/backoffice/assets/${item.directus_files_id}?download`"
+                    class="btn bg-unpad text-white text-xs py-1.5 px-4 w-full text-center block mb-1.5 inline-flex items-center justify-center gap-1.5"
+                    target="_blank">
+                    <div class="i-mdi-download w-3.5 h-3.5" />
+                    Unduh Hasil {{ index + 1 }}
+                  </NuxtLink>
+                </template>
+                <template v-else-if="file.status_pengajuan === 'ditolak'">
+                  <p class="text-xs text-gray-5 mb-2">
+                    Silahkan cek keterangan penolakan di atas.
+                  </p>
+                  <NuxtLink href="/pengajuan/pemeriksaan-turnitin"
+                    class="btn bg-unpad text-white text-xs py-1.5 px-4 inline-flex items-center gap-1.5">
+                    <div class="i-mdi-refresh w-3.5 h-3.5" />
+                    Ajukan Ulang
+                  </NuxtLink>
+                </template>
+                <p v-else class="text-xs text-gray-4 italic">
+                  Dokumen sedang diproses...
                 </p>
-                <NuxtLink
-                  href="/pengajuan/pemeriksaan-turnitin"
-                  class="btn bg-unpad text-white text-xs py-1.5 px-4 inline-flex items-center gap-1.5"
-                >
-                  <div class="i-mdi-refresh w-3.5 h-3.5" />
-                  Ajukan Ulang
-                </NuxtLink>
-              </template>
-              <p v-else class="text-xs text-gray-4 italic">
-                Dokumen sedang diproses...
-              </p>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="turnitinTotalPages > 1"
+            class="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-2 pt-4">
+            <p class="text-xs text-gray-5">
+              Menampilkan {{ turnitinItems.length }} dari
+              {{ turnitinTotalItems }} pengajuan
+            </p>
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+              <button type="button"
+                class="btn border border-gray-2 bg-white text-gray-6 text-xs py-1.5 px-3 disabled:opacity-50"
+                :disabled="turnitinPage === 1" @click="changeTurnitinPage(turnitinPage - 1)">
+                Sebelumnya
+              </button>
+              <button v-for="page in turnitinTotalPages" :key="page" type="button" class="btn text-xs py-1.5 px-3"
+                :class="turnitinPage === page
+                  ? 'bg-unpad text-white'
+                  : 'bg-white border border-gray-2 text-gray-6'
+                  " @click="changeTurnitinPage(page)">
+                {{ page }}
+              </button>
+              <button type="button"
+                class="btn border border-gray-2 bg-white text-gray-6 text-xs py-1.5 px-3 disabled:opacity-50"
+                :disabled="turnitinPage === turnitinTotalPages" @click="changeTurnitinPage(turnitinPage + 1)">
+                Berikutnya
+              </button>
             </div>
           </div>
         </div>
@@ -648,10 +627,7 @@ definePageMeta({
           <p class="text-gray-4 italic">
             Belum ada pengajuan pemeriksaan Turnitin.
           </p>
-          <NuxtLink
-            href="/pengajuan/pemeriksaan-turnitin"
-            class="btn bg-unpad text-white mt-3 text-sm py-1.5 px-5"
-          >
+          <NuxtLink href="/pengajuan/pemeriksaan-turnitin" class="btn bg-unpad text-white mt-3 text-sm py-1.5 px-5">
             Ajukan Sekarang
           </NuxtLink>
         </div>
@@ -662,13 +638,11 @@ definePageMeta({
 
 <style scoped>
 .section-card {
-  --at-apply: bg-white rounded-2xl shadow-sm border border-gray-2
-    overflow-hidden;
+  --at-apply: bg-white rounded-2xl shadow-sm border border-gray-2 overflow-hidden;
 }
 
 .section-card-header {
-  --at-apply: flex items-center gap-3 px-5 sm: px-6 py-4 border-b border-gray-1
-    bg-gray-50;
+  --at-apply: flex items-center gap-3 px-5 sm: px-6 py-4 border-b border-gray-1 bg-gray-50;
 }
 
 .section-card-header h2 {
@@ -684,8 +658,7 @@ definePageMeta({
 }
 
 .info-box {
-  --at-apply: flex items-start gap-2.5 bg-gray-50 border border-gray-2
-    rounded-xl px-4 py-3;
+  --at-apply: flex items-start gap-2.5 bg-gray-50 border border-gray-2 rounded-xl px-4 py-3;
 }
 
 .req-row {
@@ -701,8 +674,7 @@ definePageMeta({
 }
 
 .paus-chip {
-  --at-apply: text-xs bg-white/15 text-white border border-white/25 px-2.5
-    py-0.5 rounded-full font-medium;
+  --at-apply: text-xs bg-white/15 text-white border border-white/25 px-2.5 py-0.5 rounded-full font-medium;
 }
 
 .info-row {

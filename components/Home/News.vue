@@ -39,15 +39,9 @@ const gabunganBerita = [...getAllArticle, ...getAllBeritaKunjungan];
 
     <!-- News grid -->
     <div class="news-grid">
-      <GenericArticleCard
-        v-for="item in gabunganBerita.slice(0, 3)"
-        :key="item.id"
-        :featured-img="item.gambar_unggulan"
-        :description="item.konten_berita ?? item.konten_artikel"
-        :link-slug="beritaType(item)"
-        :title="item.judul"
-        :date-created="item.date_created"
-      />
+      <GenericArticleCard v-for="item in gabunganBerita.slice(0, 3)" :key="item.id" :featured-img="item.gambar_unggulan"
+        :description="item.konten_berita ?? item.konten_artikel" :link-slug="beritaType(item)" :title="item.judul"
+        :date-created="item.date_created" />
     </div>
 
     <!-- See more -->
@@ -91,7 +85,7 @@ const gabunganBerita = [...getAllArticle, ...getAllBeritaKunjungan];
 }
 
 .news-grid {
-  --at-apply: grid grid-cols-1 md: grid-cols-3 gap-6;
+  --at-apply: grid grid-cols-1 md:grid-cols-3 gap-6;
 }
 
 .news-more-btn {

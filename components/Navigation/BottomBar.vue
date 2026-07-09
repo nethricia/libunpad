@@ -16,11 +16,7 @@
     </div>
     <div class="middle-menu">
       <NuxtLink to="/search">
-        <img
-          src="/images/lambang-unpad.png"
-          class="unpad-icon"
-          alt="Logo Unpad"
-        />
+        <img src="/images/lambang-unpad.png" class="unpad-icon" alt="Logo Unpad" />
       </NuxtLink>
     </div>
     <div class="menu-element">
@@ -40,7 +36,7 @@
 
 <style scoped>
 .menu-bar {
-  --at-apply: flex justify-evenly w-full fixed bottom-0 py-2 bg-gray-50 z-3;
+  --at-apply: flex justify-evenly w-full fixed bottom-0 py-2 bg-gray-50 z-100;
 }
 
 .menu-element {

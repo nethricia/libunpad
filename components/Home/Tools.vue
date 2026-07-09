@@ -17,12 +17,7 @@ const { data: tools } = await useFetch("/api/v1/tools");
 
     <!-- Tools grid -->
     <div class="tools-grid">
-      <NuxtLink
-        v-for="tool in tools"
-        :key="tool.slug"
-        :to="tool.slug"
-        class="tool-card"
-      >
+      <NuxtLink v-for="tool in tools" :key="tool.slug" :to="tool.slug" class="tool-card">
         <div class="tool-icon-strip">
           <div :class="tool.icon + ' w-7 h-7'" />
         </div>
@@ -100,7 +95,7 @@ const { data: tools } = await useFetch("/api/v1/tools");
 }
 
 .tools-grid {
-  --at-apply: grid grid-cols-1 sm: grid-cols-2 lg: grid-cols-4 gap-5;
+  --at-apply: grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
 }
 
 .tool-card {
@@ -146,6 +141,7 @@ const { data: tools } = await useFetch("/api/v1/tools");
   --at-apply: text-xs text-gray-500 leading-relaxed flex-1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

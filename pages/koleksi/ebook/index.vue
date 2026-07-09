@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 const { getItems } = useDirectusItems();
 const { cariFakultasAbbrevation } = daftarNamaFakultasUnpad();
 const { t } = useI18n();
@@ -113,7 +113,7 @@ const resetFilter = async () => {
 const scrollToTop = () => {
   try {
     document.querySelector("section")?.scrollIntoView({ behavior: "smooth" });
-  } catch (e) {}
+  } catch (e) { }
 };
 
 onMounted(async () => {
@@ -129,16 +129,10 @@ onMounted(async () => {
       <p class="text-sm text-gray-500">
         {{ t("ebookPageListDescription") }}
       </p>
-      <div
-        class="bg-red-400 w-full p-4 text-xs my-5 rounded text-white"
-        v-if="status !== 'authenticated'"
-      >
+      <div class="bg-red-400 w-full p-4 text-xs my-5 rounded text-white" v-if="status !== 'authenticated'">
         {{ t("ebookDetailAccess") }}
-        <span class="ml-2 bg-green-500 text-white px-2 py-1 rounded">
-          <NuxtLink
-            to="/login?redir=/koleksi/ebook"
-            class="text-white no-underline font-semibold"
-          >
+        <span class="ml-2 bg-green-500 text-white px-2 py-0 md:py-1 rounded">
+          <NuxtLink to="/login?redir=/koleksi/ebook" class="text-white no-underline font-semibold">
             Login
           </NuxtLink>
         </span>
@@ -148,13 +142,8 @@ onMounted(async () => {
     <!-- Filter/Search area -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="col-span-2 flex gap-3">
-        <input
-          v-model="searchKeyword"
-          @keyup.enter="applyFilter"
-          type="search"
-          placeholder="Cari judul, penulis, atau kata kunci..."
-          class="input-area w-full"
-        />
+        <input v-model="searchKeyword" @keyup.enter="applyFilter" type="search"
+          placeholder="Cari judul, penulis, atau kata kunci..." class="input-area w-full" />
         <div class="flex gap-2">
           <button class="btn bg-unpad text-white" @click="applyFilter">
             Cari
@@ -169,11 +158,7 @@ onMounted(async () => {
         <label class="text-sm">Filter Fakultas</label>
         <select v-model="fakultasFilter" class="input-area w-full">
           <option value="">Semua Fakultas</option>
-          <option
-            v-for="f in fakultasList"
-            :key="f.fakultas"
-            :value="f.fakultas"
-          >
+          <option v-for="f in fakultasList" :key="f.fakultas" :value="f.fakultas">
             {{ cariFakultasAbbrevation(f.fakultas) || f.fakultas }}
           </option>
         </select>
@@ -183,25 +168,15 @@ onMounted(async () => {
     <!-- List -->
     <div v-if="loading" class="py-10 text-center">Loading e-book...</div>
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div
-        v-for="item in ebooks"
-        :key="item.id"
-        class="bg-white rounded-lg shadow p-4 flex flex-col"
-      >
+      <div v-for="item in ebooks" :key="item.id" class="bg-white rounded-lg shadow p-4 flex flex-col">
         <NuxtLink :to="`/koleksi/ebook/${item.id}`" class="no-underline">
           <span v-if="item.thumbnail">
-            <NuxtImg
-              :src="directusImageUrl(item.thumbnail)"
-              class="w-full h-100 object-cover rounded"
-              referrerpolicy="no-referrer"
-            />
+            <NuxtImg :src="directusImageUrl(item.thumbnail)" class="w-full h-100 object-cover rounded"
+              referrerpolicy="no-referrer" />
           </span>
           <span v-else>
-            <NuxtImg
-              :src="getEbookThumbnail(item.link_url)"
-              class="w-full h-100 object-cover rounded"
-              referrerpolicy="no-referrer"
-            />
+            <NuxtImg :src="getEbookThumbnail(item.link_url)" class="w-full h-100 object-cover rounded"
+              referrerpolicy="no-referrer" />
           </span>
         </NuxtLink>
         <div class="my-3 flex-1">
@@ -215,30 +190,20 @@ onMounted(async () => {
           </p>
         </div>
         <div class="my-3">
-          <NuxtLink
-            :to="`/koleksi/ebook/${item.id}`"
-            class="btn bg-unpad text-white w-full text-center py-1"
-            >{{ t("ebookDetailView") }}</NuxtLink
-          >
+          <NuxtLink :to="`/koleksi/ebook/${item.id}`" class="btn bg-unpad text-white w-full text-center py-1">{{
+            t("ebookDetailView") }}</NuxtLink>
         </div>
       </div>
     </div>
 
     <!-- Pagination -->
     <div class="navigation-area mt-8 flex items-center justify-center gap-4">
-      <button
-        class="btn bg-unpad text-white py-0 px-3"
-        @click="goPrevious"
-        :disabled="currentOffset === 0"
-      >
+      <button class="btn bg-unpad text-white py-0 px-3" @click="goPrevious" :disabled="currentOffset === 0">
         Sebelumnya
       </button>
       <p>{{ currentPage }} / {{ Math.ceil(totalCount / perPage) || 1 }}</p>
-      <button
-        class="btn bg-unpad text-white py-0 px-3"
-        @click="goNext"
-        :disabled="currentOffset + perPage >= totalCount"
-      >
+      <button class="btn bg-unpad text-white py-0 px-3" @click="goNext"
+        :disabled="currentOffset + perPage >= totalCount">
         Selanjutnya
       </button>
     </div>
@@ -249,9 +214,11 @@ onMounted(async () => {
 .input-area {
   --at-apply: input-area px-3 py-2 rounded border border-gray-200;
 }
+
 .btn {
   --at-apply: rounded px-4 py-2;
 }
+
 .navigation-area {
   --at-apply: flex items-center justify-center gap-3 w-full mt-8;
 }
