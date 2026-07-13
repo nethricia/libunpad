@@ -53,8 +53,6 @@ const loadPetugasNames = async (items) => {
     }),
   );
 
-  console.log("petugas users response", usersResponse);
-
   const users = Array.isArray(usersResponse) ? usersResponse : usersResponse?.data ?? [];
 
   users.forEach((userEntry) => {
