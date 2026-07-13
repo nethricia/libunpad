@@ -97,6 +97,11 @@ export const getLinkResult = (link: string) => {
   }
 };
 
+export const normalizePercentage = (value: string | number) => {
+  if (value === null || value === undefined || value === "") return "";
+  return String(value).trim().replace(/%/g, "").trim();
+};
+
 export const beritaType = (berita: any) => {
   if (berita?.hasOwnProperty('konten_berita')) {
     return '/berita/kunjungan/' + berita?.slug

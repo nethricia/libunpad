@@ -257,7 +257,7 @@ const resetVerify = () => {
             </div>
             <div class="info-row">
               <dt>Persentase Similarity</dt>
-              <dd>{{ result.data.similarity_number ? result.data.similarity_number + "%" : "—" }}</dd>
+              <dd>{{ result.data.similarity_number ? normalizePercentage(result.data.similarity_number) + "%" : "—" }}</dd>
             </div>
             <div class="info-row">
               <dt>Tanggal Diperbarui</dt>

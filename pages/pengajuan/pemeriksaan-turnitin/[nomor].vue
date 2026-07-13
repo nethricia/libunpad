@@ -2,6 +2,7 @@
 import { ref } from "vue";
 
 const { getItemById } = useDirectusItems();
+const { getUserById } = useDirectusUsers();
 const fakultas = daftarNamaFakultasUnpad();
 const { cariFakultasAbbrevation } = fakultas;
 const route = useRoute();
@@ -10,6 +11,10 @@ const suratSection = ref(null);
 const getDataSurat = await getItemById({
     collection: "pengajuan_pemeriksaan_turnitin",
     id: route.params.nomor,
+});
+
+const getDataPegawai = await getUserById({
+    id: getDataSurat.user_updated,
 });
 
 const date = new Date();
@@ -117,8 +122,15 @@ useHead({
                         </p>
                     </div>
                     <div class="grid grid-cols-4">
-                        <p>Pemeriksa</p>
-                        <p class="col-span-3">: Chrisna Adhi Pranoto</p>
+                        <p>Petugas Pemeriksa</p>
+                        <p class="col-span-3">
+                            :
+                            {{
+                                getDataPegawai
+                                    ? `${getDataPegawai.first_name} ${getDataPegawai.last_name}`
+                                    : ""
+                            }}
+                        </p>
                     </div>
                     <div class="grid grid-cols-4">
                         <p>Tanggal Diperiksa</p>
@@ -135,7 +147,8 @@ useHead({
                         <span
                             v-if="getDataSurat.similarity_number"
                             class="font-bold"
-                            >sebesar {{ getDataSurat.similarity_number }}</span
+                            >sebesar
+                            {{ normalizePercentage(getDataSurat.similarity_number) }}%</span
                         >
                         <span v-else
                             >sebagaimana terlampir pada hasil pemeriksaan</span
@@ -171,6 +184,7 @@ useHead({
                         <NuxtLink
                             to="https://kandaga.unpad.ac.id/pengajuan/verify"
                             class="underline font-semibold"
+                            target="_blank"
                             >https://kandaga.unpad.ac.id/pengajuan/verify</NuxtLink
                         >
                         dengan menyertakan Surat Generated ID di atas.
