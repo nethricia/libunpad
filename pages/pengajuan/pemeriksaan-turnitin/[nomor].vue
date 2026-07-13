@@ -71,7 +71,7 @@ useHead({
                 </div>
             </div>
             <hr class="border border-dark my-2" />
-            <div class="text-center my-10">
+            <div class="text-center my-2">
                 <h6 class="font-bold underline">
                     SURAT KETERANGAN HASIL PEMERIKSAAN TURNITIN
                 </h6>
@@ -127,7 +127,7 @@ useHead({
                         </p>
                     </div>
                 </div>
-                <div class="my-5">
+                <div class="my-2">
                     <p>
                         Telah dilakukan pemeriksaan karya tulis tersebut di atas
                         menggunakan aplikasi Turnitin, dengan hasil persentase
@@ -146,7 +146,7 @@ useHead({
                         sebagaimana mestinya.
                     </p>
                 </div>
-                <div class="flex flex-col items-end my-10">
+                <div class="flex flex-col items-end my-3">
                     <div>
                         <p>
                             Jatinangor,
@@ -154,8 +154,8 @@ useHead({
                         </p>
                         <p>a.n. Kepala Kantor Perpustakaan Unpad</p>
                         <NuxtImg
-                            src="images/ttd/chrisna-sign.png"
-                            class="w-45 my-8"
+                            src="images/ttd/cap_chrisna.png"
+                            class="w-25 my-1"
                         />
                         <p>Chrisna Adhi Pranoto</p>
                         <p>NIP 199901022022023001</p>
@@ -207,7 +207,7 @@ section {
 }
 
 article {
-    --at-apply: max-w-3xl ma border-none p-10 my-5;
+    --at-apply: max-w-3xl ma border-none p-5 my-5;
 }
 
 h6 {

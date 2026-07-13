@@ -56,6 +56,17 @@ const kirimPengajuan = async () => {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
   const emailValidation = emailPattern.test(email.value);
+  if (judul.value.length > 255) {
+    colorNotif.value = "text-red-7";
+    notification.value =
+      "Judul Karya Tulis tidak boleh lebih dari 255 karakter!";
+    isSubmitting.value = false;
+    setTimeout(() => {
+      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
+      colorNotif.value = "text-dark";
+    }, 8000);
+    return;
+  }
   // Validate file type
   if (fileSurat.value) {
     const allowedTypes = [
@@ -375,7 +386,13 @@ const kirimPengajuan = async () => {
                 <label for="judul"
                   >Judul Karya Tulis <span class="text-red-6">*</span></label
                 >
-                <input type="text" id="judul" v-model="judul" required />
+                <input
+                  type="text"
+                  id="judul"
+                  v-model="judul"
+                  maxlength="255"
+                  required
+                />
               </div>
 
               <!-- Divider -->
