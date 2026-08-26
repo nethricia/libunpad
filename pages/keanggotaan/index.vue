@@ -25,6 +25,13 @@ const getPeminjamanRuangan = await getItems({
   },
 }).catch(() => []);
 
+const activeTab = ref("bebas-pustaka");
+const tabs = [
+  { id: "bebas-pustaka", name: "Surat Bebas Pustaka", icon: "i-mdi-certificate-outline" },
+  { id: "ruangan", name: "Peminjaman Ruangan", icon: "i-mdi-office-building-outline" },
+  { id: "turnitin", name: "Pemeriksaan Turnitin", icon: "i-mdi-file-document-edit-outline" },
+];
+
 const petugasNameCache = ref({});
 const turnitinItems = ref([]);
 const turnitinPage = ref(1);
@@ -299,8 +306,46 @@ definePageMeta({
         </div>
       </div>
 
+      <!-- ═══ MOBILE DROPDOWN (Mobile only) ═══ -->
+      <div class="md:hidden relative w-full bg-white border border-gray-2 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-unpad/50 focus-within:border-unpad transition-all duration-200">
+        <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-unpad">
+          <div :class="[tabs.find(t => t.id === activeTab)?.icon, 'w-5 h-5']" />
+        </div>
+        <select
+          v-model="activeTab"
+          class="w-full bg-transparent pl-11 pr-10 py-3.5 text-sm font-semibold text-gray-8 appearance-none focus:outline-none cursor-pointer"
+        >
+          <option
+            v-for="tab in tabs"
+            :key="tab.id"
+            :value="tab.id"
+          >
+            {{ tab.name }}
+          </option>
+        </select>
+        <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-5">
+          <div class="i-mdi-chevron-down w-5 h-5" />
+        </div>
+      </div>
+
+      <!-- ═══ TABS NAVIGATION (Tablet & Desktop) ═══ -->
+      <div class="tabs-container hidden md:flex items-center bg-white border border-gray-2 rounded-2xl p-1.5 shadow-sm gap-1.5 overflow-x-auto flex-nowrap w-full">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          @click="activeTab = tab.id"
+          class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200 flex-1 shrink-0 min-w-max"
+          :class="activeTab === tab.id
+            ? 'bg-unpad text-white font-semibold shadow-sm'
+            : 'text-gray-5 hover:text-gray-8 hover:bg-gray-50 font-medium'"
+        >
+          <div :class="[tab.icon, 'w-4 h-4 shrink-0']" />
+          <span>{{ tab.name }}</span>
+        </button>
+      </div>
+
       <!-- ═══ CARD: Bebas Pustaka ═══ -->
-      <div class="section-card">
+      <div v-if="activeTab === 'bebas-pustaka'" class="section-card">
         <div class="section-card-header">
           <div class="i-mdi-certificate-outline section-icon" />
           <h2>Surat Bebas Pustaka</h2>
@@ -413,7 +458,7 @@ definePageMeta({
       </div>
 
       <!-- ═══ CARD: Peminjaman Ruangan ═══ -->
-      <div class="section-card">
+      <div v-if="activeTab === 'ruangan'" class="section-card">
         <div class="section-card-header">
           <div class="i-mdi-office-building-outline section-icon" />
           <h2>Peminjaman Ruangan</h2>
@@ -448,7 +493,7 @@ definePageMeta({
       </div>
 
       <!-- ═══ CARD: Turnitin ═══ -->
-      <div class="section-card">
+      <div v-if="activeTab === 'turnitin'" class="section-card">
         <div class="section-card-header">
           <div class="i-mdi-file-document-edit-outline section-icon" />
           <h2>Pemeriksaan Turnitin</h2>
@@ -691,5 +736,13 @@ definePageMeta({
 
 .info-row dd {
   --at-apply: text-sm font-500 text-gray-8 m-0;
+}
+
+.tabs-container {
+  scrollbar-width: none;
+}
+
+.tabs-container::-webkit-scrollbar {
+  display: none;
 }
 </style>
