@@ -5,8 +5,7 @@ definePageMeta({
 
 const { data } = useAuth();
 const { $directus, $uploadFiles } = useNuxtApp();
-const { createItems, getItems } = useDirectusItems();
-const { readSingleton } = useDirectusItems();
+const { createItems, getItems, getSingletonItem } = useDirectusItems();
 
 // Fetch feature settings
 const featureSettings = ref(null);
@@ -14,7 +13,7 @@ const isFeatureActive = ref(true);
 const featureMessage = ref("");
 
 try {
-  featureSettings.value = await readSingleton({
+  featureSettings.value = await getSingletonItem({
     collection: "fitur_peminjaman_ruangan",
   });
 
@@ -54,6 +53,8 @@ try {
   }
 } catch (error) {
   console.error("Error fetching feature settings:", error);
+  // If there's an error fetching, assume feature is active to allow users to proceed
+  isFeatureActive.value = true;
 }
 
 const date = new Date();
