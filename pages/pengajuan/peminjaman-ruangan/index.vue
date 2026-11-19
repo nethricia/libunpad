@@ -6,6 +6,55 @@ definePageMeta({
 const { data } = useAuth();
 const { $directus, $uploadFiles } = useNuxtApp();
 const { createItems, getItems } = useDirectusItems();
+const { readSingleton } = useDirectusItems();
+
+// Fetch feature settings
+const featureSettings = ref(null);
+const isFeatureActive = ref(true);
+const featureMessage = ref("");
+
+try {
+  featureSettings.value = await readSingleton({
+    collection: "fitur_peminjaman_ruangan",
+  });
+
+  if (featureSettings.value) {
+    const isActive = featureSettings.value.active;
+    const sampaiTanggal = featureSettings.value.sampai_tanggal;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if feature is active and if sampai_tanggal is set
+    if (!isActive) {
+      isFeatureActive.value = false;
+      if (sampaiTanggal) {
+        const deadline = new Date(sampaiTanggal);
+        const formattedDate = new Intl.DateTimeFormat("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(deadline);
+        featureMessage.value = `Fitur peminjaman ruangan sementara dinonaktifkan hingga ${formattedDate}.`;
+      } else {
+        featureMessage.value =
+          "Fitur peminjaman ruangan sementara dinonaktifkan.";
+      }
+    } else if (sampaiTanggal) {
+      // If active but has an end date, show info message
+      const deadline = new Date(sampaiTanggal);
+      if (deadline >= today) {
+        const formattedDate = new Intl.DateTimeFormat("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(deadline);
+        featureMessage.value = `Fitur peminjaman ruangan tersedia hingga ${formattedDate}.`;
+      }
+    }
+  }
+} catch (error) {
+  console.error("Error fetching feature settings:", error);
+}
 
 const date = new Date();
 const lastDay = getTotalDays(date.getMonth(), date.getFullYear());
@@ -216,8 +265,38 @@ const kirimPengajuan = async () => {
 
     <!-- Content -->
     <div class="max-w-3xl ma px-4 py-6 flex flex-col gap-4">
+      <!-- Feature Inactive Notice -->
+      <div
+        v-if="!isFeatureActive"
+        class="info-box bg-orange-50 border-orange-2"
+      >
+        <div
+          class="i-mdi-alert-circle-outline w-5 h-5 shrink-0 text-orange-5 mt-0.5"
+        />
+        <div class="flex flex-col gap-1.5 text-sm text-orange-8">
+          <p class="font-semibold">Fitur Tidak Tersedia</p>
+          <p>{{ featureMessage }}</p>
+          <p v-if="featureSettings?.kontak">
+            Untuk informasi lebih lanjut, silakan hubungi:
+            <span class="font-semibold">{{ featureSettings.kontak }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature Info Notice (when active but has end date) -->
+      <div
+        v-else-if="featureMessage"
+        class="info-box bg-blue-50 border-blue-2"
+      >
+        <div
+          class="i-mdi-information-outline w-5 h-5 shrink-0 text-blue-5 mt-0.5"
+        />
+        <div class="flex flex-col gap-1.5 text-sm text-blue-8">
+          <p>{{ featureMessage }}</p>
+        </div>
+      </div>
       <!-- Warning notice for Ruang Kelas Lt. 2 -->
-      <div class="info-box bg-red-50 border-red-2">
+      <div v-if="isFeatureActive" class="info-box bg-red-50 border-red-2">
         <div
           class="i-mdi-warning-decagram w-5 h-5 shrink-0 text-red-5 mt-0.5"
         />
@@ -240,7 +319,7 @@ const kirimPengajuan = async () => {
       </div>
 
       <!-- Form card -->
-      <div class="section-card">
+      <div v-if="isFeatureActive" class="section-card">
         <div class="section-card-header">
           <div
             class="i-mdi-account-details-outline w-5 h-5 text-unpad shrink-0"
