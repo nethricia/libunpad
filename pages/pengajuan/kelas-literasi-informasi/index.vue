@@ -1,10 +1,9 @@
 <script setup>
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 definePageMeta({
   middleware: ["authentication-check"],
 });
 
-const { createItems, getItems } = useDirectusItemsProxy();
+const { createItems, getItems } = useDirectusItems();
 const { user } = useUserSession();
 const dataFakultas = daftarNamaFakultasUnpad();
 

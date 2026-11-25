@@ -1,12 +1,9 @@
 <script setup>
 import { readUsers } from "@directus/sdk";
-// Explicit import: this variant forwards the session cookie during SSR
-// (the nuxt-directus auto-import uses the global $fetch, which does not).
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 
 const { logout } = useDirectusAuth();
 const user = useDirectusUser();
-const { getItems } = useDirectusItemsProxy();
+const { getItems } = useDirectusItems();
 const { $directus } = useNuxtApp();
 const { loggedIn: ssoLoggedIn, user: sessionUser, clear } = useUserSession();
 
@@ -17,18 +14,75 @@ const sessionEmail = sessionUser.value?.email;
 const getBebasPustaka = sessionEmail
   ? await getItems({
       collection: "pengajuan_surat_bebas_pustaka",
-      params: { filter: { email: sessionEmail } },
+      // Same owner filter as before; sorted + limited because the page only
+      // renders the latest application (getBebasPustaka[0]).
+      params: {
+        filter: { email: sessionEmail },
+        sort: "-date_created",
+        limit: 1,
+      },
     }).catch(() => [])
   : [];
 
-const getPeminjamanRuangan = sessionEmail
-  ? await getItems({
-      collection: "peminjaman_ruangan",
-      params: { filter: { email: sessionEmail } },
-    }).catch(() => [])
-  : [];
+// Room bookings are paginated: a user can accumulate many requests.
+const ruanganPage = ref(1);
+const ruanganPerPage = 9;
+const ruanganItems = ref([]);
+const ruanganTotalItems = ref(0);
+const ruanganTotalPages = ref(1);
+
+const fetchRuanganData = async () => {
+  if (!sessionEmail) {
+    ruanganItems.value = [];
+    ruanganTotalItems.value = 0;
+    ruanganTotalPages.value = 1;
+    return;
+  }
+
+  const response = await getItems({
+    collection: "peminjaman_ruangan",
+    params: {
+      filter: { email: sessionEmail },
+      limit: ruanganPerPage,
+      offset: (ruanganPage.value - 1) * ruanganPerPage,
+      meta: "filter_count",
+      sort: "-date_created",
+    },
+  }).catch(() => null);
+
+  const rows = Array.isArray(response) ? response : response?.data ?? [];
+  ruanganItems.value = rows;
+  ruanganTotalItems.value =
+    response?.meta?.filter_count ??
+    (Array.isArray(response) ? response.length : 0);
+  ruanganTotalPages.value = Math.max(
+    1,
+    Math.ceil(ruanganTotalItems.value / ruanganPerPage),
+  );
+
+  // Clamp if the current page no longer exists (e.g. after a deletion).
+  if (ruanganPage.value > ruanganTotalPages.value) {
+    ruanganPage.value = ruanganTotalPages.value;
+    await fetchRuanganData();
+  }
+};
+
+const changeRuanganPage = async (page) => {
+  ruanganPage.value = Math.max(1, Math.min(page, ruanganTotalPages.value));
+  await fetchRuanganData();
+};
+
+await fetchRuanganData();
 
 const activeTab = ref("bebas-pustaka");
+
+// Deep-link support: /keanggotaan?tab=ruangan
+const route = useRoute();
+const initialTab = String(route.query.tab ?? "");
+if (["bebas-pustaka", "ruangan", "turnitin"].includes(initialTab)) {
+  activeTab.value = initialTab;
+}
+
 const tabs = [
   { id: "bebas-pustaka", name: "Surat Bebas Pustaka", icon: "i-mdi-certificate-outline" },
   { id: "ruangan", name: "Peminjaman Ruangan", icon: "i-mdi-office-building-outline" },
@@ -471,9 +525,9 @@ definePageMeta({
           <h2>Peminjaman Ruangan</h2>
         </div>
 
-        <div v-if="getPeminjamanRuangan.length > 0" class="p-5 sm:p-6">
+        <div v-if="ruanganItems.length > 0" class="p-5 sm:p-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div v-for="ruang in getPeminjamanRuangan" :key="ruang.id"
+            <div v-for="ruang in ruanganItems" :key="ruang.id"
               class="bg-gray-50 border border-gray-2 rounded-xl p-4 flex flex-col gap-2">
               <p class="font-semibold text-sm text-gray-8 leading-tight">
                 {{ definePeminjamanRuangan(ruang.nama_ruangan) }}
@@ -488,6 +542,32 @@ definePageMeta({
                 {{ ruang.status_peminjaman }}
               </span>
             </div>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="ruanganTotalPages > 1"
+            class="flex flex-wrap items-center justify-center gap-2 mt-5 pt-4 border-t border-gray-2">
+            <button type="button" class="btn bg-white border border-gray-2 text-gray-6 text-xs py-1.5 px-3"
+              :disabled="ruanganPage <= 1" @click="changeRuanganPage(ruanganPage - 1)">
+              Sebelumnya
+            </button>
+            <button v-for="page in ruanganTotalPages" :key="page" type="button" class="btn text-xs py-1.5 px-3"
+              :class="page === ruanganPage
+                ? 'bg-unpad text-white font-semibold'
+                : 'bg-white border border-gray-2 text-gray-6'"
+              @click="changeRuanganPage(page)">
+              {{ page }}
+            </button>
+            <button type="button" class="btn bg-white border border-gray-2 text-gray-6 text-xs py-1.5 px-3"
+              :disabled="ruanganPage >= ruanganTotalPages" @click="changeRuanganPage(ruanganPage + 1)">
+              Selanjutnya
+            </button>
+            <p class="w-full text-center text-xs text-gray-4 mt-1 mb-0">
+              Menampilkan {{ (ruanganPage - 1) * ruanganPerPage + 1 }}–{{
+                Math.min(ruanganPage * ruanganPerPage, ruanganTotalItems)
+              }}
+              dari {{ ruanganTotalItems }} pengajuan
+            </p>
           </div>
         </div>
 

@@ -1,5 +1,4 @@
 <script setup>
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 import { computed } from "vue";
 const route = useRoute();
 const { loggedIn, user, clear } = useUserSession();
@@ -11,7 +10,7 @@ const loginWithGoogle = async () => {
     { external: true },
   );
 };
-const { getItemById } = useDirectusItemsProxy();
+const { getItemById } = useDirectusItems();
 const fakultas = daftarNamaFakultasUnpad();
 const isAuthenticated = computed(() => loggedIn.value);
 

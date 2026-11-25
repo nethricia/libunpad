@@ -1,5 +1,4 @@
 <script setup>
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 const { createItems } = useDirectusItems();
 const user = useDirectusUser();
 

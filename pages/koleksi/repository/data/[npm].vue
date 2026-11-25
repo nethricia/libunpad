@@ -1,5 +1,4 @@
 <script setup>
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 const route = useRoute();
 const config = useRuntimeConfig();
 const { loggedIn, user, clear } = useUserSession();
@@ -12,7 +11,7 @@ const loginWithGoogle = async () => {
   );
 };
 const fakultas = daftarNamaFakultasUnpad();
-const { getItemById } = useDirectusItemsProxy();
+const { getItemById } = useDirectusItems();
 const { getFiles } = useDirectusFiles();
 
 const accessText = ref("");

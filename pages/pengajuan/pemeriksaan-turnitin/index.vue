@@ -1,12 +1,11 @@
 <script setup>
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 definePageMeta({
   middleware: ["authentication-check"],
 });
 
 const { user } = useUserSession();
 const { $directus, $uploadFiles } = useNuxtApp();
-const { createItems, getItems } = useDirectusItemsProxy();
+const { createItems, getItems } = useDirectusItems();
 const dataFakultas = daftarNamaFakultasUnpad();
 
 const notification = ref("Silahkan isi seluruh form sesuai dengan data asli");

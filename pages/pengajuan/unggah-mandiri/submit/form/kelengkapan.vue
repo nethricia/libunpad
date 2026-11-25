@@ -1,5 +1,4 @@
 <!-- <script setup>
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 import { VuePDF, usePDF } from "@tato30/vue-pdf";
 import '@tato30/vue-pdf/style.css';
 

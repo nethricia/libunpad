@@ -1,5 +1,4 @@
 <script setup>
-import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 import { getSubmitterData } from '~/composables/dspaceKit';
 
 definePageMeta({
