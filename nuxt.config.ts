@@ -59,7 +59,9 @@ export default defineNuxtConfig({
     defaultLocale: "id",
     strategy: "prefix_and_default",
     langDir: "lang",
-    vueI18n: "./i18n.config.ts",
+    // Resolved relative to the i18n directory (restructureDir), not the project
+    // root — hence the "../" prefix.
+    vueI18n: "../i18n.config.ts",
     skipSettingLocaleOnNavigate: true,
     detectBrowserLanguage: false,
     defaultDirection: "auto",

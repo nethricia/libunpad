@@ -356,7 +356,10 @@ if (loggedIn.value) {
 .divider::before,
 .divider::after {
   content: "";
-  --at-apply: absolute top-1/2 h-px w-[calc(50%-4rem)] bg-slate-200;
+  --at-apply: absolute top-1/2 h-px bg-slate-200;
+  /* UnoCSS bracket syntax needs underscores for spaces, otherwise the CSS is
+     emitted as calc(50%-4rem), which is invalid and drops the rule. */
+  width: calc(50% - 4rem);
 }
 
 .divider::before {
