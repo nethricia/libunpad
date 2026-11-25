@@ -13,7 +13,6 @@ const { data: dataPegawai } = await useFetch(
 
 definePageMeta({
   layout: "dashboard",
-  middleware: ["directus-auth"],
 });
 </script>
 

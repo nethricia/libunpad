@@ -8,20 +8,10 @@ const { cariFakultasAbbrevation } = fakultas;
 const route = useRoute();
 const suratSection = ref(null);
 
-// Letters are only readable by their owner (or by staff through their own
-// Directus session). The server route enforces ownership.
-const getDataSurat = await $fetch("/api/v1/pengajuan/surat", {
-  query: { jenis: "bebas-pustaka", id: route.params.nomor },
-}).catch(() => null);
-
-if (!getDataSurat) {
-  throw createError({
-    statusCode: 403,
-    statusMessage:
-      "Surat hanya dapat diakses oleh pemiliknya. Silakan masuk terlebih dahulu.",
-    fatal: true,
-  });
-}
+const getDataSurat = await getItemById({
+  collection: "pengajuan_surat_bebas_pustaka",
+  id: route.params.nomor,
+});
 
 const getDataPegawai = await getUserById({
   id: getDataSurat.user_updated,

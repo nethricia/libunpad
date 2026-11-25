@@ -22,16 +22,31 @@ const verifySurat = async () => {
   verifyStatus.value = "checking";
   result.value = null;
 
-  try {
-    // Server-side lookup; identity fields come back masked.
-    const data = await $fetch("/api/v1/pengajuan/verify", { query: { id } });
-    if (data?.data?.id) {
-      result.value = data;
-      verifyStatus.value = "found";
-      return;
+  const collections = [
+    {
+      collection: "pengajuan_surat_bebas_pustaka",
+      jenis: "bebas-pustaka",
+    },
+    {
+      collection: "pengajuan_pemeriksaan_turnitin",
+      jenis: "pemeriksaan-turnitin",
+    },
+  ];
+
+  for (const target of collections) {
+    try {
+      const data = await getItemById({
+        collection: target.collection,
+        id,
+      });
+      if (data?.id) {
+        result.value = { jenis: target.jenis, data };
+        verifyStatus.value = "found";
+        return;
+      }
+    } catch (e) {
+      // id tidak ada di koleksi ini, lanjut ke koleksi berikutnya
     }
-  } catch (e) {
-    // treat as not found
   }
 
   verifyStatus.value = "notfound";

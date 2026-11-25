@@ -2,11 +2,16 @@
  * Server-side Scopus search proxy.
  *
  * The Elsevier API key must never reach the browser, and must never be
- * committed to the repository — it is read from KANDAGA_SCOPUS_API_KEY only.
+ * committed to the repository — it is read from KANDAGA_SCOPUS_API_KEY
+ * (or NUXT_SCOPUS_API_KEY) in the environment only.
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const apiKey = config.scopusApiKey as string | undefined;
+  // Accept both names at runtime:
+  //   KANDAGA_SCOPUS_API_KEY — same prefix as the other KANDAGA_* vars
+  //   NUXT_SCOPUS_API_KEY    — Nuxt's runtime override for `scopusApiKey`
+  const apiKey = (process.env.KANDAGA_SCOPUS_API_KEY ||
+    config.scopusApiKey) as string | undefined;
 
   if (!apiKey) {
     throw createError({

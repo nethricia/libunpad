@@ -7,7 +7,6 @@ const profilPegawai = await fetchProfilPegawai(route.params.id);
 
 definePageMeta({
   layout: "dashboard",
-  middleware: ["directus-auth"],
 });
 </script>
 

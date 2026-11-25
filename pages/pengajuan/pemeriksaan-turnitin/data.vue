@@ -1,10 +1,6 @@
 <script setup>
 const { getItems } = useDirectusItems();
 
-definePageMeta({
-  middleware: ["directus-auth"],
-});
-
 const data = await getItems({
   collection: "pemeriksaan_turnitin",
 });

@@ -32,7 +32,6 @@ const createTask = async () => {
 
 definePageMeta({
   layout: "dashboard",
-  middleware: ["directus-auth"],
 });
 </script>
 
