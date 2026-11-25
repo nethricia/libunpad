@@ -3,6 +3,7 @@ definePageMeta({
   middleware: ["authentication-check"],
 });
 const { createItems, getItems } = useDirectusItems();
+const { isSubmitting, submit } = useFormSubmission();
 const dataFakultas = daftarNamaFakultasUnpad();
 const { user } = useUserSession();
 
@@ -39,32 +40,44 @@ const checkDuplicateSubmission = async () => {
   return isDuplicated;
 };
 
-const kirimPengajuan = async () => {
+const kirimPengajuan = () => {
   const emailValidation = emailPattern.test(email.value);
-  let items = {
-    npm: npm.value,
-    nama_lengkap: namaLengkap.value,
-    email: email.value,
-    kontak: kontak.value,
-    keperluan: keperluan.value,
-    nama_fakultas: fakultas.value,
-    nama_prodi: prodi.value,
-    status_pengajuan: "pengajuan",
-  };
-  if (emailValidation) {
+
+  return submit(async () => {
+    if (!emailValidation) {
+      textNotif.value = "text-red-7";
+      notification.value = "Email tidak valid, silahkan coba lagi";
+      setTimeout(async () => {
+        notification.value =
+          "Silahkan isi seluruh form sesuai dengan data asli";
+        textNotif.value = "text-dark";
+      }, 5000);
+      return;
+    }
+
+    const items = {
+      npm: npm.value,
+      nama_lengkap: namaLengkap.value,
+      email: email.value,
+      kontak: kontak.value,
+      keperluan: keperluan.value,
+      nama_fakultas: fakultas.value,
+      nama_prodi: prodi.value,
+      status_pengajuan: "pengajuan",
+    };
+
     try {
-      await createItems({ collection: "pengajuan_surat_bebas_pustaka", items });
+      await createItems({
+        collection: "pengajuan_surat_bebas_pustaka",
+        items,
+      });
       await navigateTo({ path: "/pengajuan/bebas-pustaka/data" });
     } catch (error) {
+      textNotif.value = "text-red-7";
+      notification.value =
+        "Gagal mengirim pengajuan. Silakan coba lagi sebentar lagi.";
     }
-  } else {
-    textNotif.value = "text-red-7";
-    notification.value = "Email tidak valid, silahkan coba lagi";
-    setTimeout(async () => {
-      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
-      textNotif.value = "text-dark";
-    }, 5000);
-  }
+  });
 };
 
 const isDup = await checkDuplicateSubmission();
@@ -223,9 +236,11 @@ const isDup = await checkDuplicateSubmission();
 
           <button
             type="submit"
-            class="btn bg-orange text-white w-full py-2.5 font-600 text-base"
+            class="btn bg-orange text-white w-full py-2.5 font-600 text-base transition-all-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isSubmitting"
           >
-            Kirim Pengajuan
+            <span v-if="isSubmitting">Mengirim...</span>
+            <span v-else>Kirim Pengajuan</span>
           </button>
         </form>
       </div>

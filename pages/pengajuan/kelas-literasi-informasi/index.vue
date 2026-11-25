@@ -4,6 +4,7 @@ definePageMeta({
 });
 
 const { createItems, getItems } = useDirectusItems();
+const { isSubmitting, submit } = useFormSubmission();
 const { user } = useUserSession();
 const dataFakultas = daftarNamaFakultasUnpad();
 
@@ -30,7 +31,7 @@ const chooseKelas = (jadwal) => {
   jenisKelas.value = jadwal;
 };
 
-const kirimPengajuan = async () => {
+const kirimPengajuan = () => {
   if (
     npm.value === "" ||
     namaLengkap.value === "" ||
@@ -40,8 +41,11 @@ const kirimPengajuan = async () => {
     jenisKelas.value === ""
   ) {
     alert("Silahkan isi form terlebih dahulu");
-  } else {
-    let items = {
+    return;
+  }
+
+  return submit(async () => {
+    const items = {
       npm: npm.value,
       nama_lengkap: namaLengkap.value,
       email: email.value,
@@ -59,23 +63,24 @@ const kirimPengajuan = async () => {
       });
       colorNotif.value = "text-green";
       notification.value = "Berhasil diajukan";
-      namaLengkap.value = ref("");
+      namaLengkap.value = "";
       email.value = user.value.email;
       kontak.value = "";
       jenisKelas.value = "";
       fakultas.value = "";
       prodi.value = "";
 
-      status_pengajuan.value = "";
-      setTimeout(async () => {
-        notification.value =
-          "Silahkan isi seluruh form sesuai dengan data asli";
-        colorNotif.value = "text-dark";
-        await navigateTo({ path: "/keanggotaan" });
-      }, 2000);
+      // Keep the button locked until the redirect happens.
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
+      colorNotif.value = "text-dark";
+      await navigateTo({ path: "/keanggotaan" });
     } catch (error) {
+      colorNotif.value = "text-red-7";
+      notification.value =
+        "Gagal mengirim pengajuan. Silakan coba lagi sebentar lagi.";
     }
-  }
+  });
 };
 </script>
 
@@ -159,11 +164,12 @@ const kirimPengajuan = async () => {
 
       <div class="input-form">
         <button
-          class="btn bg-orange text-white py-2 w-full"
+          class="btn bg-orange text-white py-2 w-full transition-all-200 disabled:opacity-60 disabled:cursor-not-allowed"
           type="submit"
-          @click.prevent="kirimPengajuan"
+          :disabled="isSubmitting"
         >
-          Ajukan Kelas
+          <span v-if="isSubmitting">Mengirim...</span>
+          <span v-else>Ajukan Kelas</span>
         </button>
       </div>
     </form>

@@ -1,23 +1,29 @@
 <script setup>
 const val = ref("Ada masalah di Kandaga ?");
 const { createItems } = useDirectusItems();
+const { isSubmitting, submit } = useFormSubmission();
 
 const komplain = ref("");
 const ruangan = ref("");
 const ruanganLain = ref("");
 
-const kirimKomplain = async () => {
-  let dataKomplain = {
-    komplain: komplain.value,
-    ruangan: ruangan.value === "lainnya" ? ruanganLain.value : ruangan.value,
-  };
+const kirimKomplain = () => {
+  if (komplain.value === "" || ruangan.value === "") {
+    alert("Mohon isi ruangan dan komplain terlebih dahulu");
+    return;
+  }
 
-  if (komplain.value !== "" && ruangan.value !== "") {
-    // Check if "lainnya" is selected but custom room is empty
-    if (ruangan.value === "lainnya" && ruanganLain.value === "") {
-      alert("Mohon isi nama ruangan lainnya");
-      return;
-    }
+  // Check if "lainnya" is selected but custom room is empty
+  if (ruangan.value === "lainnya" && ruanganLain.value === "") {
+    alert("Mohon isi nama ruangan lainnya");
+    return;
+  }
+
+  return submit(async () => {
+    const dataKomplain = {
+      komplain: komplain.value,
+      ruangan: ruangan.value === "lainnya" ? ruanganLain.value : ruangan.value,
+    };
 
     try {
       await createItems({
@@ -25,15 +31,13 @@ const kirimKomplain = async () => {
         items: dataKomplain,
       });
       alert("Komplain berhasil dikirim");
-      setTimeout(async () => {
-        komplain.value = "";
-        ruangan.value = "";
-        ruanganLain.value = "";
-      }, 500);
+      komplain.value = "";
+      ruangan.value = "";
+      ruanganLain.value = "";
     } catch (error) {
       alert("Failed: " + error);
     }
-  }
+  });
 };
 </script>
 
@@ -99,10 +103,11 @@ const kirimKomplain = async () => {
 
         <button
           type="submit"
-          class="btn bg-orange text-white w-full"
-          :disabled="komplain === '' || ruangan === ''"
+          class="btn bg-orange text-white w-full transition-all-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          :disabled="isSubmitting || komplain === '' || ruangan === ''"
         >
-          Kirim Komplain
+          <span v-if="isSubmitting">Mengirim...</span>
+          <span v-else>Kirim Komplain</span>
         </button>
       </form>
     </div>

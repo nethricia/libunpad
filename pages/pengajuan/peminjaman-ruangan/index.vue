@@ -64,7 +64,7 @@ const lastDate = `${date.getFullYear()}-${date.getMonth() + 1}-${lastDay}`;
 
 const npm = ref(user.value?.identifier ?? "");
 const notification = ref("Silahkan isi seluruh form sesuai dengan data asli");
-const isUploading = ref(false);
+const { isSubmitting, submit } = useFormSubmission();
 const textNotif = ref("text-dark");
 const namaLengkap = ref("");
 const email = ref(user.value.email);
@@ -145,16 +145,7 @@ const isDatePast = (date) => {
   return checkDate < today;
 };
 
-const kirimPengajuan = async () => {
-  const emailValidation = emailPattern.test(email.value);
-  const formData = new FormData();
-  formData.append("folder", "AD0865F0-F6A3-4F62-8551-FE52625C7308");
-  // const roomExist = checkExistingPeminjaman(
-  //   tanggalPeminjaman.value,
-  //   jamMulai.value + ":00"
-  // );
-
-  isUploading.value = true;
+const kirimPengajuan = () => {
   if (
     namaLengkap.value === "" ||
     unitPengajuan.value === "" ||
@@ -167,72 +158,80 @@ const kirimPengajuan = async () => {
     jamSelesai.value === ""
   ) {
     alert("Mohon diisi kolom yang bertanda bintang merah!");
-  } else if (isDatePast(tanggalPeminjaman.value)) {
-    isUploading.value = false;
-    alert("Tanggal peminjaman tidak boleh tanggal sebelum hari ini!");
-  } else if (fileSurat.value === null) {
-    isUploading.value = false;
-    alert("Mohon unggah surat pengajuan!");
-  } else if (fileSurat.value !== null) {
-    formData.append("file", fileSurat.value);
-    notification.value = "Sedang mengunggah berkas... Mohon tunggu sebentar";
-    await $directus.request($uploadFiles(formData)).then(async (res) => {
-      let items = {
-        nomor_induk: npm.value,
-        nama_lengkap: namaLengkap.value,
-        unit_pengajuan: unitPengajuan.value,
-        email: email.value,
-        kontak: kontak.value,
-        nama_ruangan: namaRuangan.value,
-        judul_kegiatan: judulKegiatan.value,
-        tanggal_peminjaman: tanggalPeminjaman.value,
-        jam_mulai_peminjaman: jamMulai.value,
-        jam_selesai_peminjaman: jamSelesai.value,
-        keterangan: tujuanPeminjaman.value,
-        status_peminjaman: "pending",
-        file_surat: res.id,
-      };
-      if (emailValidation) {
-        try {
-          await createItems({ collection: "peminjaman_ruangan", items });
-          textNotif.value = "text-green";
-          notification.value = "Berhasil diajukan";
-          namaLengkap.value = ref("");
-          unitPengajuan.value = "";
-          email.value = user.value.email;
-          kontak.value = "";
-          namaRuangan.value = "";
-          tanggalPeminjaman.value = "";
-          jamMulai.value = "";
-          jamSelesai.value = "";
-          tujuanPeminjaman.value = "";
-          fileSurat.value = null;
-          alert("Berhasil diajukan");
-          setTimeout(async () => {
-            notification.value =
-              "Silahkan isi seluruh form sesuai dengan data asli";
-            textNotif.value = "text-dark";
-            isUploading.value = false;
-            await navigateTo({ path: "/pengajuan/peminjaman-ruangan/data" });
-          }, 2000);
-        } catch (error) {
-          isUploading.value = false;
-        }
-      } else {
-        textNotif.value = "text-red-7";
-        notification.value = "Email tidak valid, silahkan coba lagi";
-        setTimeout(async () => {
-          notification.value =
-            "Silahkan isi seluruh form sesuai dengan data asli";
-          textNotif.value = "text-dark";
-          isUploading.value = false;
-        }, 5000);
-      }
-    });
-  } else {
-    alert("Error! Hubungi admin.");
-    isUploading.value = false;
+    return;
   }
+  if (isDatePast(tanggalPeminjaman.value)) {
+    alert("Tanggal peminjaman tidak boleh tanggal sebelum hari ini!");
+    return;
+  }
+  if (fileSurat.value === null) {
+    alert("Mohon unggah surat pengajuan!");
+    return;
+  }
+  if (!emailPattern.test(email.value)) {
+    textNotif.value = "text-red-7";
+    notification.value = "Email tidak valid, silahkan coba lagi";
+    setTimeout(() => {
+      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
+      textNotif.value = "text-dark";
+    }, 5000);
+    return;
+  }
+
+  return submit(async () => {
+    const formData = new FormData();
+    formData.append("folder", "AD0865F0-F6A3-4F62-8551-FE52625C7308");
+    formData.append("file", fileSurat.value);
+
+    notification.value = "Sedang mengunggah berkas... Mohon tunggu sebentar";
+    textNotif.value = "text-dark";
+
+    try {
+      const res = await $directus.request($uploadFiles(formData));
+
+      await createItems({
+        collection: "peminjaman_ruangan",
+        items: {
+          nomor_induk: npm.value,
+          nama_lengkap: namaLengkap.value,
+          unit_pengajuan: unitPengajuan.value,
+          email: email.value,
+          kontak: kontak.value,
+          nama_ruangan: namaRuangan.value,
+          judul_kegiatan: judulKegiatan.value,
+          tanggal_peminjaman: tanggalPeminjaman.value,
+          jam_mulai_peminjaman: jamMulai.value,
+          jam_selesai_peminjaman: jamSelesai.value,
+          keterangan: tujuanPeminjaman.value,
+          status_peminjaman: "pending",
+          file_surat: res.id,
+        },
+      });
+
+      textNotif.value = "text-green";
+      notification.value = "Berhasil diajukan";
+      namaLengkap.value = "";
+      unitPengajuan.value = "";
+      email.value = user.value.email;
+      kontak.value = "";
+      namaRuangan.value = "";
+      tanggalPeminjaman.value = "";
+      jamMulai.value = "";
+      jamSelesai.value = "";
+      tujuanPeminjaman.value = "";
+      fileSurat.value = null;
+
+      // Keep the button locked until the redirect happens.
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
+      textNotif.value = "text-dark";
+      await navigateTo({ path: "/pengajuan/peminjaman-ruangan/data" });
+    } catch (error) {
+      textNotif.value = "text-red-7";
+      notification.value =
+        "Gagal mengirim pengajuan. Silakan coba lagi sebentar lagi.";
+    }
+  });
 };
 </script>
 
@@ -481,10 +480,10 @@ const kirimPengajuan = async () => {
           <button
             type="submit"
             class="btn bg-orange text-white w-full py-2.5 font-600 text-base transition-all-200"
-            :disabled="isUploading"
-            :class="{ 'opacity-60 cursor-not-allowed': isUploading }"
+            :disabled="isSubmitting"
+            :class="{ 'opacity-60 cursor-not-allowed': isSubmitting }"
           >
-            <span v-if="isUploading">⏳ Mengunggah & Menyimpan...</span>
+            <span v-if="isSubmitting">⏳ Mengunggah & Menyimpan...</span>
             <span v-else>Ajukan Peminjaman</span>
           </button>
         </form>

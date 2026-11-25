@@ -16,8 +16,7 @@ const bearer = useCookie("dsAccessToken");
 
 const { user } = useUserSession();
 const { createItems } = useDirectusItems();
-
-const submitLoading = ref(false);
+const { isSubmitting, submit } = useFormSubmission();
 
 const getKelengkapanData = await fetchDspaceItemLogs(user.value.email)
 
@@ -77,42 +76,56 @@ const back = () => {
   router.go(-1);
 }
 
-const nextSubmit = async () => {
-  if (submitter.fakultas && submitter.programStudi && submitter.jenjang && submitter.namaLengkap && submitter.npm) {
-    submitLoading.value = true;
-    await $fetch(`${config.public.dSpacePublic}/submission/workspaceitems`, {
-      method: "POST",
-      credentials: "include",
-      headers: new Headers({
-        Accept: "*/*",
-        Authorization: "Bearer " + bearer.value.accessToken,
-        "X-XSRF-TOKEN": `${dSpaceToken.value}`,
-        "Content-Type": "application/json",
-      }),
-      query: {
-        owningCollection: submitter.programStudi
-      },
-      async onResponse({ response }) {
-        await createItems({
-          collection: "log_dspace_items",
-          items: {
-            email: user.value.email,
-            npm: submitter.npm,
-            nama_lengkap: submitter.namaLengkap,
-            id_fakultas: submitter.fakultas,
-            id_jenjang: submitter.jenjang,
-            id_prodi: submitter.programStudi,
-            id_workspaceitems: response?._data?.id,
-            id_itemuuid: response?._data?._embedded?.item?.id
-          }
-        })
-      }
-    })
-    await navigateTo("/pengajuan/unggah-mandiri/submit/form/kelengkapan");
-  } else {
+const nextSubmit = () => {
+  if (
+    !submitter.fakultas ||
+    !submitter.programStudi ||
+    !submitter.jenjang ||
+    !submitter.namaLengkap ||
+    !submitter.npm
+  ) {
     displayModal();
+    return;
   }
-}
+
+  return submit(async () => {
+    try {
+      await $fetch(`${config.public.dSpacePublic}/submission/workspaceitems`, {
+        method: "POST",
+        credentials: "include",
+        headers: new Headers({
+          Accept: "*/*",
+          Authorization: "Bearer " + bearer.value.accessToken,
+          "X-XSRF-TOKEN": `${dSpaceToken.value}`,
+          "Content-Type": "application/json",
+        }),
+        query: {
+          owningCollection: submitter.programStudi,
+        },
+        async onResponse({ response }) {
+          await createItems({
+            collection: "log_dspace_items",
+            items: {
+              email: user.value.email,
+              npm: submitter.npm,
+              nama_lengkap: submitter.namaLengkap,
+              id_fakultas: submitter.fakultas,
+              id_jenjang: submitter.jenjang,
+              id_prodi: submitter.programStudi,
+              id_workspaceitems: response?._data?.id,
+              id_itemuuid: response?._data?._embedded?.item?.id,
+            },
+          });
+        },
+      });
+      await navigateTo("/pengajuan/unggah-mandiri/submit/form/kelengkapan");
+    } catch (error) {
+      alert(
+        "Gagal membuat sesi unggah. Silakan muat ulang halaman lalu coba lagi.",
+      );
+    }
+  });
+};
 </script>
 
 <template>
@@ -127,7 +140,7 @@ const nextSubmit = async () => {
     </div>
     <section>
       <h2 class="text-center">Form Unggah Mandiri</h2>
-      <form @submit|prevent="" class="mx-5">
+      <form @submit.prevent="nextSubmit" class="mx-5">
         <div class="input-block">
           <label for="fakultas">Fakultas :</label>
           <select name="fakultas" id="fakultas" class="input-area" v-model="submitter.fakultas"
@@ -167,8 +180,12 @@ const nextSubmit = async () => {
       </form>
       <div class="my-5 flex flex-col lg:flex-row gap-3  mx-5">
         <button class="btn bg-red text-white w-full" @click="back"> &leftarrow;Kembali</button>
-        <button class="btn bg-orange text-white w-full" @click="nextSubmit">
-          <span v-if="submitLoading" class="flex gap-3 items-center justify-center">
+        <button
+          class="btn bg-orange text-white w-full transition-all-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          :disabled="isSubmitting"
+          @click="nextSubmit"
+        >
+          <span v-if="isSubmitting" class="flex gap-3 items-center justify-center">
             <div class="loader"></div>
             Mengirim...
           </span>

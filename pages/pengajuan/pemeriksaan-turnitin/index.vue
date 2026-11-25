@@ -10,7 +10,7 @@ const dataFakultas = daftarNamaFakultasUnpad();
 
 const notification = ref("Silahkan isi seluruh form sesuai dengan data asli");
 const colorNotif = ref("text-dark");
-const isSubmitting = ref(false);
+const { isSubmitting, submit } = useFormSubmission();
 const npm = ref(user.value?.identifier ?? "");
 const namaLengkap = ref(user.value.name);
 const email = ref(user.value.email);
@@ -52,21 +52,18 @@ const fileSize = computed(() => {
 
 const emailPattern = /[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/;
 
-const kirimPengajuan = async () => {
-  if (isSubmitting.value) return;
-  isSubmitting.value = true;
-  const emailValidation = emailPattern.test(email.value);
+const kirimPengajuan = () => {
   if (judul.value.length > 255) {
     colorNotif.value = "text-red-7";
     notification.value =
       "Judul Karya Tulis tidak boleh lebih dari 255 karakter!";
-    isSubmitting.value = false;
     setTimeout(() => {
       notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
       colorNotif.value = "text-dark";
     }, 8000);
     return;
   }
+
   // Validate file type
   if (fileSurat.value) {
     const allowedTypes = [
@@ -85,25 +82,37 @@ const kirimPengajuan = async () => {
           "Silahkan isi seluruh form sesuai dengan data asli";
         colorNotif.value = "text-dark";
       }, 10000);
-      isSubmitting.value = false;
       return;
     }
   }
-  let formData = new FormData();
-  formData.append("folder", "33D4C963-CF03-4883-A724-B93E0C1183D0");
+
   if (
-    emailValidation &&
-    npm.value !== "" &&
-    namaLengkap.value !== "" &&
-    kontak.value !== "" &&
-    fakultas.value !== "" &&
-    prodi.value !== "" &&
-    judul.value !== "" &&
-    fileSurat.value !== null
+    !emailPattern.test(email.value) ||
+    npm.value === "" ||
+    namaLengkap.value === "" ||
+    kontak.value === "" ||
+    fakultas.value === "" ||
+    prodi.value === "" ||
+    judul.value === "" ||
+    fileSurat.value === null
   ) {
+    alert("Kolom ( * ) wajib diisi");
+    colorNotif.value = "text-red-7";
+    notification.value = "Kolom ( * ) wajib diisi";
+    setTimeout(() => {
+      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
+      colorNotif.value = "text-dark";
+    }, 5000);
+    return;
+  }
+
+  return submit(async () => {
+    const formData = new FormData();
+    formData.append("folder", "33D4C963-CF03-4883-A724-B93E0C1183D0");
+    formData.append("file", fileSurat.value);
+
     try {
       submitStep.value = "uploading";
-      formData.append("file", fileSurat.value);
       const res = await $directus.request($uploadFiles(formData));
       submitStep.value = "saving";
       const items = {
@@ -132,13 +141,13 @@ const kirimPengajuan = async () => {
       prodi.value = "";
       judul.value = "";
       fileSurat.value = null;
-      setTimeout(async () => {
-        notification.value =
-          "Silahkan isi seluruh form sesuai dengan data asli";
-        colorNotif.value = "text-dark";
-        submitStep.value = "idle";
-        await navigateTo({ path: "/keanggotaan" });
-      }, 1500);
+
+      // Keep the button locked until the redirect happens.
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
+      colorNotif.value = "text-dark";
+      submitStep.value = "idle";
+      await navigateTo({ path: "/keanggotaan" });
     } catch (error) {
       console.error(error);
       submitStep.value = "error";
@@ -150,19 +159,8 @@ const kirimPengajuan = async () => {
         colorNotif.value = "text-dark";
         submitStep.value = "idle";
       }, 5000);
-    } finally {
-      isSubmitting.value = false;
     }
-  } else {
-    alert("Kolom ( * ) wajib diisi");
-    colorNotif.value = "text-red-7";
-    notification.value = "Kolom ( * ) wajib diisi";
-    isSubmitting.value = false;
-    setTimeout(async () => {
-      notification.value = "Silahkan isi seluruh form sesuai dengan data asli";
-      colorNotif.value = "text-dark";
-    }, 5000);
-  }
+  });
 };
 </script>
 
