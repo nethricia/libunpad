@@ -34,7 +34,8 @@ onMounted(() => {
     s1.async = true;
     s1.src = "https://embed.tawk.to/659caafc8d261e1b5f50f7e0/1hjlvnreg";
     s1.charset = "UTF-8";
-    s1.setAttribute("crossorigin", "*");
+    // No `crossorigin` attribute: with CORS mode enabled the tawk.to script
+    // fails its CORS check and the widget never initialises.
     s0.parentNode.insertBefore(s1, s0);
   })();
 });
