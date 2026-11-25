@@ -4,8 +4,6 @@ const { getItems } = useDirectusItems();
 const { getUserById } = useDirectusUsers();
 const data = ref("Literasi Informasi");
 
-const url = useDirectusUrl();
-
 const getLiterasiContent = await getItems({
   collection: "konten_literasi_informasi",
   params: {
@@ -34,7 +32,7 @@ const authorName = `${getAuthorData.first_name} ${getAuthorData.last_name}`;
 
       <div class="bg-orange-50 px-15 py-10 rounded">
         <div class="featured">
-          <img :src="url + '/assets/' + literasiContent.featured_image" alt="Literasi Informasi"
+          <img :src="directusImageUrl(literasiContent.featured_image)" alt="Literasi Informasi"
             class="w-full max-h-xs object-cover" />
         </div>
         <span v-html="sanitizeHtml(literasiContent.konten)"></span>

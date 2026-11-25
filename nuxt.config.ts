@@ -144,6 +144,17 @@ export default defineNuxtConfig({
   },
 
   image: {
+    // Allow NuxtImg/IPX to fetch Directus assets from the public Directus host
+    // (derived from the same env var the proxy uses).
+    domains: (() => {
+      const base = process.env.KANDAGA_DIRECTUS_BASE_URL;
+      if (!base) return [];
+      try {
+        return [new URL(base).host];
+      } catch {
+        return [];
+      }
+    })(),
     quality: 80,
     format: ["webp"],
     screens: {

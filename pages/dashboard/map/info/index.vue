@@ -1,5 +1,4 @@
 <script setup>
-const config = useRuntimeConfig();
 
 const { data: dataKoordinator } = await useFetch(
   fetchUrlKoordinator("16D809CF-F29D-45E3-99FA-2878C563C51A"),
@@ -12,7 +11,7 @@ const { data: dataPegawai } = await useFetch(
 );
 
 const getProfileImage = computed(() => {
-  return `${config.public.directus.url}assets/${dataKoordinator.data.avatar}`;
+  return directusImageUrl(dataKoordinator.data.avatar);
 });
 
 definePageMeta({

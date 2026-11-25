@@ -1,6 +1,5 @@
 <script setup>
 const route = useRoute();
-const config = useRuntimeConfig();
 const { getItems } = useDirectusItems();
 const { getUserById } = useDirectusUsers();
 
@@ -26,7 +25,7 @@ const namaPenulis = `${getPenulis.first_name} ${getPenulis.last_name}`;
     <!-- Hero with featured image -->
     <div
       class="article-hero"
-      :style="`background-image: url(${config.public.directus.url}assets/${berita[0].gambar_unggulan})`"
+      :style="`background-image: url(${directusImageUrl(berita[0].gambar_unggulan)})`"
     >
       <div class="article-hero-overlay" />
       <div class="article-hero-content">
@@ -44,7 +43,7 @@ const namaPenulis = `${getPenulis.first_name} ${getPenulis.last_name}`;
           <NuxtImg
             :src="
               getPenulis.avatar
-                ? config.public.directus.url + 'assets/' + getPenulis.avatar
+                ? directusImageUrl(getPenulis.avatar)
                 : '/images/no-image.jpg'
             "
             class="author-avatar"

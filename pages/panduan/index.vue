@@ -7,10 +7,9 @@ const getAllLiterasiInformasi = await getItems({
   collection: "konten_literasi_informasi",
 });
 
-const config = useRuntimeConfig();
 
 const getImg = (id) => {
-  return `${config.public.directusPublicUrl}assets/${id}`;
+  return directusImageUrl(id);
 }
 
 const panduanList = [

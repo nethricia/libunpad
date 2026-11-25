@@ -112,9 +112,30 @@ export const beritaType = (berita: any) => {
   }
 }
 
-export const directusImageUrl = (id: string) => {
-  const config = useRuntimeConfig();
-  return `${config.public.directusPublicUrl}assets/${id}`;
+/**
+ * Public URL for a file stored in Directus.
+ *
+ * Directus serves files at `<public base>/assets/<id>`, e.g.
+ * `https://kandaga.unpad.ac.id/backoffice/assets/<id>`.
+ *
+ * Note: `config.public.directus.url` is the *API* endpoint (`/api/v1/directus`
+ * proxy) and must not be used to build asset URLs.
+ */
+export const directusImageUrl = (id: string | null | undefined) => {
+  if (!id) return "";
+
+  let base = "";
+  try {
+    base = String(useRuntimeConfig().public.directusPublicUrl ?? "");
+  } catch {
+    // Called outside a Nuxt context (e.g. a computed evaluated by unhead):
+    // fall back to the same-origin proxy below.
+  }
+  base = base.replace(/\/+$/, "");
+
+  // Fallback to the same-origin proxy when no public base is configured; the
+  // proxy adds the service token, so the file still loads.
+  return base ? `${base}/assets/${id}` : `/api/v1/directus/assets/${id}`;
 };
 
 export const generateStrongPassword = (

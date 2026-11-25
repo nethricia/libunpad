@@ -1,6 +1,5 @@
 <script setup>
 const route = useRoute();
-const config = useRuntimeConfig();
 const { loggedIn, user, clear } = useUserSession();
 
 // PAuS / Google sign-in via nuxt-auth-utils routes
@@ -76,7 +75,7 @@ const makeFileUrl = (fileId) => {
   if (!fileId || fileId === "undefined") {
     return null;
   }
-  return `${config.public.directusPublicUrl}assets/${fileId}`;
+  return directusImageUrl(fileId);
 };
 
 const dataObjectTA = {

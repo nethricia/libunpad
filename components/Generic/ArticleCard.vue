@@ -1,5 +1,4 @@
 <script setup>
-const config = useRuntimeConfig();
 
 defineProps({
   featuredImg: String,
@@ -14,7 +13,7 @@ defineProps({
   <article class="article-card">
     <div class="article-img-wrap">
       <NuxtImg
-        :src="`${config.public.directus.url}assets/` + featuredImg"
+        :src="directusImageUrl(featuredImg)"
         :alt="title"
         class="article-img"
         loading="lazy"

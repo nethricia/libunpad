@@ -1,7 +1,6 @@
 <script setup>
 const { locale } = useI18n();
 const { getItems, getItemById } = useDirectusItems();
-const config = useRuntimeConfig();
 
 const getHighlight = await getItems({
   collection: "highlight_berita_depan",
@@ -12,19 +11,21 @@ const getBerita = await getItemById({
   id: getHighlight?.berita_highlight,
 });
 
-const getThumbnail = (id) => {
-  return `${config.public.directus.url}assets/${id}`;
-};
+// Resolve at setup time: `useRuntimeConfig()` is not available inside a
+// computed evaluated by unhead during SSR (throws NUXT_E1001).
+const thumbnailUrl = getBerita?.gambar_unggulan
+  ? directusImageUrl(getBerita.gambar_unggulan)
+  : "";
 
 // Preload the LCP hero image so the browser discovers it early
 useHead(
   computed(() => ({
-    link: getBerita?.gambar_unggulan
+    link: thumbnailUrl
       ? [
           {
             rel: "preload",
             as: "image",
-            href: getThumbnail(getBerita.gambar_unggulan),
+            href: thumbnailUrl,
             fetchpriority: "high",
           },
         ]
@@ -38,7 +39,7 @@ useHead(
     <!-- Background image — plain img so src matches the preload URL exactly (no IPX proxy hop) -->
     <img
       v-if="getBerita?.gambar_unggulan"
-      :src="getThumbnail(getBerita.gambar_unggulan)"
+      :src="thumbnailUrl"
       class="hero-bg-img"
       loading="eager"
       fetchpriority="high"
