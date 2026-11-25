@@ -33,7 +33,7 @@ defineProps({
         Pembuat: <span class="font-semibold">{{ pembuat }}</span>
       </p>
       <p class="text-sm">
-        <span v-html="trimDescription(deskripsi, 85)"></span>
+        <span v-html="sanitizeHtml(trimDescription(deskripsi, 85))"></span>
       </p>
       <div class="mt-3 flex text-center">
         <NuxtLink

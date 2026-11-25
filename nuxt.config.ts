@@ -20,7 +20,8 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    "/api/**": { cors: true },
+    // CORS is handled per-origin in server/middleware/cors.ts
+    // (the previous wildcard `cors: true` exposed every API route to any site).
     "/visitor/rekap": { redirect: "/error" },
     "/pengajuan/unggah-mandiri/submit/**": {
       redirect: "/pengajuan/unggah-mandiri",
@@ -33,8 +34,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@nuxt/image",
     "@nuxtjs/i18n",
-    "dayjs-nuxt",
-    "@sidebase/nuxt-auth",
+    "nuxt-auth-utils",
     "@nuxtjs/turnstile",
     "nuxt-gtag",
   ],
@@ -65,36 +65,47 @@ export default defineNuxtConfig({
     defaultDirection: "auto",
   },
 
-  dayjs: {
-    locales: ["id", "en"],
-    plugins: ["relativeTime", "utc", "timezone"],
-    defaultLocale: "id",
-    defaultTimezone: "Asia/Jakarta",
-  },
-
   auth: {
-    isEnabled: true,
-    disableServerSideAuth: false,
-    originEnvKey: "AUTH_KANDAGA_ORIGIN",
-    baseURL: process.env.AUTH_KANDAGA_BASEURL,
-    provider: {
-      type: "authjs",
-      trustHost: false,
-      defaultProvider: "google",
-      addDefaultCallbackUrl: true,
-    },
+    // nuxt-auth-utils: sealed-cookie sessions (no next-auth / next / react).
+    // The session secret is derived from Nuxt's appSecret — set NUXT_APP_SECRET
+    // (>= 32 chars) in production, e.g. `openssl rand -base64 32`.
+    loadStrategy: "server-first",
   },
 
   directus: {
     autoFetch: true,
-    url: process.env.KANDAGA_DIRECTUS_BASE_URL,
-    token: process.env.KANDAGA_DIRECTUS_ACCESS_TOKEN,
+    // All Directus traffic goes through the authenticated server proxy at
+    // /api/v1/directus. The service token stays server-side (see
+    // server/api/v1/directus/[...path].ts) and is never sent to the browser.
+    url: "/api/v1/directus",
   },
 
   runtimeConfig: {
-    authSecret: process.env.AUTH_KANDAGA_SECRET,
-    authGoogleClientId: process.env.AUTH_KANDAGA_GOOGLE_CLIENT_ID,
-    authGoogleClientSecret: process.env.AUTH_KANDAGA_GOOGLE_CLIENT_SECRET,
+    // Session sealing secret. nuxt-auth-utils derives the cookie key from
+    // Nuxt's `appSecret`; NUXT_APP_SECRET overrides this at runtime.
+    appSecret:
+      process.env.NUXT_APP_SECRET ?? process.env.AUTH_KANDAGA_SECRET ?? "",
+    // PAuS OAuth (custom provider — see server/routes/auth/paus.get.ts)
+    pausClientId: process.env.KANDAGA_PAUS_CLIENT_ID,
+    pausClientSecret: process.env.KANDAGA_PAUS_CLIENT_SECRET,
+    pausAuthorizationUrl:
+      process.env.KANDAGA_PAUS_AUTHORIZATION_URL ??
+      "https://paus.unpad.ac.id/oauth",
+    pausTokenUrl:
+      process.env.KANDAGA_PAUS_TOKEN_URL ??
+      "https://paus.unpad.ac.id/oauth/access-token",
+    pausUserUrl:
+      process.env.KANDAGA_PAUS_USER_URL ??
+      "https://paus.unpad.ac.id/api/accounts",
+    // Only set this if a different callback URL is registered with PAuS.
+    pausRedirectUrl: process.env.KANDAGA_PAUS_REDIRECT_URL,
+    // Google OAuth (built-in nuxt-auth-utils provider)
+    oauth: {
+      google: {
+        clientId: process.env.AUTH_KANDAGA_GOOGLE_CLIENT_ID,
+        clientSecret: process.env.AUTH_KANDAGA_GOOGLE_CLIENT_SECRET,
+      },
+    },
     urlApiKandaga: process.env.KANDAGA_URL_API_KANDAGA,
     pustakaApiUrl: process.env.KANDAGA_PUSTAKA_API_URL,
     pustakaApiKey: process.env.KANDAGA_PUSTAKA_API_KEY,
@@ -107,15 +118,20 @@ export default defineNuxtConfig({
     dbName: process.env.KANDAGA_DRIZZLE_DATABASE,
     dbPassword: process.env.KANDAGA_DRIZZLE_PASSWORD,
     dbPort: Number(process.env.KANDAGA_DRIZZLE_PORT),
+    dbSsl: process.env.KANDAGA_DRIZZLE_SSL === "true",
+    dbConnectionLimit: Number(process.env.KANDAGA_DRIZZLE_CONNECTION_LIMIT ?? 10),
+    scopusApiKey: process.env.KANDAGA_SCOPUS_API_KEY,
+    // Sealed-session cookie lifetime (matches the previous 20-minute session).
+    session: {
+      maxAge: 60 * 20,
+    },
     turnstile: {
       secretKey: process.env.KANDAGA_TURNSTILE_SECRETKEY,
     },
     public: {
-      pausClientId: process.env.KANDAGA_PAUS_CLIENT_ID,
       meiliHost: process.env.KANDAGA_MEILI_HOST,
-      meiliApiKey: process.env.KANDAGA_MEILI_API_KEY,
-      directusAuthToken: process.env.KANDAGA_DIRECTUS_ACCESS_TOKEN,
       directusPublicUrl: process.env.KANDAGA_DIRECTUS_BASE_URL,
+      pustakaPublicUrl: process.env.KANDAGA_PUSTAKA_API_URL,
     },
   },
 

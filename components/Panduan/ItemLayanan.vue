@@ -30,7 +30,7 @@ defineProps({
         </NuxtLink>
         <p
           class="text-sm italic"
-          v-html="trimDescription(item.deskripsi_layanan, 250)"
+          v-html="sanitizeHtml(trimDescription(item.deskripsi_layanan, 250))"
         ></p>
         <div class="flex my-3 text-center">
           <NuxtLink :to="`/panduan/${item.slug_layanan}`" class="action-btn">

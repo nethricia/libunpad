@@ -21,7 +21,9 @@ const {
   firstCollection,
   secondCollection,
 } = props;
-const { getThumbnail: img } = useDirectusFiles();
+// Build asset URLs from the public Directus origin (the API base is a relative
+// proxy path and cannot be used for images).
+const img = (id) => directusImageUrl(id);
 
 const resolveImage = (source) => {
   if (!source) return "/images/no-image.jpg";

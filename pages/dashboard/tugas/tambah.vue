@@ -1,4 +1,5 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 const { createItems } = useDirectusItems();
 const user = useDirectusUser();
 
@@ -31,6 +32,7 @@ const createTask = async () => {
 
 definePageMeta({
   layout: "dashboard",
+  middleware: ["directus-auth"],
 });
 </script>
 

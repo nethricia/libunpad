@@ -30,11 +30,8 @@ const dataPiketPegawai = await getItems({
 });
 
 const { data: dataPetugas } = await useFetch(
-  `${config.public.directus.url}users`,
+  `${config.public.directus.url}/users`,
   {
-    headers: {
-      Authorization: `Bearer ${config.public.directus.token}`,
-    },
     pick: ["data", ["id", "first_name", "last_name"]],
   }
 );

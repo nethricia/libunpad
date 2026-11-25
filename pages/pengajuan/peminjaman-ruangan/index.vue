@@ -1,9 +1,10 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 definePageMeta({
   middleware: ["authentication-check"],
 });
 
-const { data } = useAuth();
+const { user } = useUserSession();
 const { $directus, $uploadFiles } = useNuxtApp();
 const { createItems, getItems, getSingletonItem } = useDirectusItems();
 
@@ -62,12 +63,12 @@ const lastDay = getTotalDays(date.getMonth(), date.getFullYear());
 const firstDate = `${date.getFullYear()}-${date.getMonth() + 1}-01`;
 const lastDate = `${date.getFullYear()}-${date.getMonth() + 1}-${lastDay}`;
 
-const npm = ref(data.value?.user?.identifier ?? "");
+const npm = ref(user.value?.identifier ?? "");
 const notification = ref("Silahkan isi seluruh form sesuai dengan data asli");
 const isUploading = ref(false);
 const textNotif = ref("text-dark");
 const namaLengkap = ref("");
-const email = ref(data.value.user.email);
+const email = ref(user.value.email);
 const kontak = ref("");
 const namaRuangan = ref("");
 const judulKegiatan = ref("");
@@ -199,7 +200,7 @@ const kirimPengajuan = async () => {
           notification.value = "Berhasil diajukan";
           namaLengkap.value = ref("");
           unitPengajuan.value = "";
-          email.value = data.value.user.email;
+          email.value = user.value.email;
           kontak.value = "";
           namaRuangan.value = "";
           tanggalPeminjaman.value = "";

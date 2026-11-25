@@ -1,7 +1,7 @@
 <script setup>
 const unggahMandiri = ref("Unggah Mandiri Karya Ilmiah");
-const { data } = useAuth();
-const getKelengkapanData = await fetchDspaceItemLogs(data?.value?.user?.email);
+const { user } = useUserSession();
+const getKelengkapanData = await fetchDspaceItemLogs(user.value?.email);
 const userETD = getKelengkapanData[0];
 </script>
 

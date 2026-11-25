@@ -1,29 +1,32 @@
 <script setup>
 import { readUsers } from "@directus/sdk";
+// Explicit import: this variant forwards the session cookie during SSR
+// (the nuxt-directus auto-import uses the global $fetch, which does not).
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 
 const { logout } = useDirectusAuth();
 const user = useDirectusUser();
-const { getItems } = useDirectusItems();
+const { getItems } = useDirectusItemsProxy();
 const { $directus } = useNuxtApp();
-const { data, status, signOut } = useAuth();
+const { loggedIn: ssoLoggedIn, user: sessionUser, clear } = useUserSession();
 
-const getBebasPustaka = await getItems({
-  collection: "pengajuan_surat_bebas_pustaka",
-  params: {
-    filter: {
-      email: data?.value?.user?.email,
-    },
-  },
-}).catch(() => []);
+const sessionEmail = sessionUser.value?.email;
 
-const getPeminjamanRuangan = await getItems({
-  collection: "peminjaman_ruangan",
-  params: {
-    filter: {
-      email: data?.value?.user?.email,
-    },
-  },
-}).catch(() => []);
+// Never query without an owner filter — an empty filter would return every
+// applicant's record.
+const getBebasPustaka = sessionEmail
+  ? await getItems({
+      collection: "pengajuan_surat_bebas_pustaka",
+      params: { filter: { email: sessionEmail } },
+    }).catch(() => [])
+  : [];
+
+const getPeminjamanRuangan = sessionEmail
+  ? await getItems({
+      collection: "peminjaman_ruangan",
+      params: { filter: { email: sessionEmail } },
+    }).catch(() => [])
+  : [];
 
 const activeTab = ref("bebas-pustaka");
 const tabs = [
@@ -70,11 +73,15 @@ const loadPetugasNames = async (items) => {
 };
 
 const fetchTurnitinData = async () => {
+  if (!sessionEmail) {
+    turnitinItems.value = [];
+    return;
+  }
   const response = await getItems({
     collection: "pengajuan_pemeriksaan_turnitin",
     params: {
       filter: {
-        email: data?.value?.user?.email,
+        email: sessionEmail,
       },
       fields: ["*", "berkas_hasil_pemeriksaan.*"],
       limit: turnitinPerPage,
@@ -173,7 +180,7 @@ definePageMeta({
               : 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg'
               " :alt="user?.first_name"
               class="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-2xl border-4 border-white/60 shadow-lg" />
-            <NuxtImg v-else-if="status === 'authenticated'" :src="data.user.image"
+            <NuxtImg v-else-if="ssoLoggedIn" :src="sessionUser.image"
               class="w-24 h-24 rounded-2xl border-4 border-white/60 shadow-lg object-cover" />
           </div>
           <!-- Identity -->
@@ -183,14 +190,14 @@ definePageMeta({
             </p>
             <h1 class="text-white text-2xl sm:text-3xl font-800 leading-tight">
               <template v-if="user">{{ user.first_name }} {{ user.last_name }}</template>
-              <template v-else-if="status === 'authenticated'">{{
-                data.user.name
+              <template v-else-if="ssoLoggedIn">{{
+                sessionUser.name
                 }}</template>
             </h1>
             <p class="text-white/80 text-sm mt-1">
               <template v-if="user">{{ user.email }}</template>
-              <template v-else-if="status === 'authenticated'">{{
-                data.user.email
+              <template v-else-if="ssoLoggedIn">{{
+                sessionUser.email
                 }}</template>
             </p>
             <span v-if="user?.title"
@@ -198,24 +205,24 @@ definePageMeta({
               {{ user.title }}
             </span>
             <!-- PAuS-specific identity chips -->
-            <div v-if="status === 'authenticated' && data?.user?.identifier" class="flex flex-wrap gap-1.5 mt-2">
+            <div v-if="ssoLoggedIn && sessionUser?.identifier" class="flex flex-wrap gap-1.5 mt-2">
               <span class="paus-chip">
-                <span class="opacity-70">ID:</span> {{ data.user.identifier }}
+                <span class="opacity-70">ID:</span> {{ sessionUser.identifier }}
               </span>
-              <span v-if="data.user.username" class="paus-chip">
-                @{{ data.user.username }}
+              <span v-if="sessionUser.username" class="paus-chip">
+                @{{ sessionUser.username }}
               </span>
-              <span v-if="data.user.type" class="paus-chip capitalize">
-                {{ data.user.type }}
+              <span v-if="sessionUser.type" class="paus-chip capitalize">
+                {{ sessionUser.type }}
               </span>
-              <span v-if="data.user.jenjang" class="paus-chip">
-                {{ data.user.jenjang }}
+              <span v-if="sessionUser.jenjang" class="paus-chip">
+                {{ sessionUser.jenjang }}
               </span>
-              <span v-if="data.user.faculty || data.user.unit" class="paus-chip">
-                {{ data.user.faculty ?? data.user.unit }}
+              <span v-if="sessionUser.faculty || sessionUser.unit" class="paus-chip">
+                {{ sessionUser.faculty ?? sessionUser.unit }}
               </span>
-              <span v-if="data.user.study_program" class="paus-chip">
-                {{ data.user.study_program }}
+              <span v-if="sessionUser.study_program" class="paus-chip">
+                {{ sessionUser.study_program }}
               </span>
             </div>
           </div>
@@ -233,8 +240,8 @@ definePageMeta({
               class="btn bg-red-5/80 hover:bg-red-6 text-white text-sm py-1.5 transition-all-200" @click="onLogout">
               Logout
             </button>
-            <button v-show="!user && status" type="button"
-              class="btn bg-red-5/80 hover:bg-red-6 text-white text-sm py-1.5 transition-all-200" @click="signOut()">
+            <button v-show="!user && ssoLoggedIn" type="button"
+              class="btn bg-red-5/80 hover:bg-red-6 text-white text-sm py-1.5 transition-all-200" @click="clear">
               Logout
             </button>
           </div>
@@ -243,7 +250,7 @@ definePageMeta({
     </div>
 
     <!-- Logged-out fallback -->
-    <div v-if="!user && status !== 'authenticated'" class="max-w-md ma mt-20 text-center px-4">
+    <div v-if="!user && !ssoLoggedIn" class="max-w-md ma mt-20 text-center px-4">
       <div class="bg-white rounded-2xl shadow-md p-10">
         <div class="i-mdi-account-circle-outline text-unpad w-16 h-16 ma mb-4" />
         <h2 class="text-xl font-700 mb-2">Sesi Berakhir</h2>
@@ -257,50 +264,50 @@ definePageMeta({
     <!-- Main content (authenticated) -->
     <div v-else class="max-w-5xl ma px-4 py-8 flex flex-col gap-6">
       <!-- ═══ CARD: PAuS Identity (SSO users only) ═══ -->
-      <div v-if="status === 'authenticated' && data?.user?.identifier" class="section-card">
+      <div v-if="ssoLoggedIn && sessionUser?.identifier" class="section-card">
         <div class="section-card-header">
           <div class="i-mdi-account-badge-outline section-icon" />
           <h2>Identitas Akun PAuS</h2>
           <span
             class="ml-auto text-xs bg-unpad/10 text-unpad border border-unpad/20 px-2.5 py-0.5 rounded-full font-semibold capitalize">
-            {{ data.user.type ?? "PAuS SSO" }}
+            {{ sessionUser.type ?? "PAuS SSO" }}
           </span>
         </div>
         <div class="p-5 sm:p-6">
           <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
             <div class="info-row">
               <dt>Nama Lengkap</dt>
-              <dd>{{ data.user.name ?? "—" }}</dd>
+              <dd>{{ sessionUser.name ?? "—" }}</dd>
             </div>
             <div class="info-row">
               <dt>Username</dt>
-              <dd>{{ data.user.username ? "@" + data.user.username : "—" }}</dd>
+              <dd>{{ sessionUser.username ? "@" + sessionUser.username : "—" }}</dd>
             </div>
             <div class="info-row">
               <dt>Email</dt>
-              <dd>{{ data.user.email ?? "—" }}</dd>
+              <dd>{{ sessionUser.email ?? "—" }}</dd>
             </div>
             <div class="info-row">
               <dt>NIM / NIP</dt>
-              <dd>{{ data.user.identifier ?? "—" }}</dd>
+              <dd>{{ sessionUser.identifier ?? "—" }}</dd>
             </div>
             <div class="info-row">
               <dt>
-                {{ data.user.faculty ? "Fakultas" : "Unit / Direktorat" }}
+                {{ sessionUser.faculty ? "Fakultas" : "Unit / Direktorat" }}
               </dt>
-              <dd>{{ data.user.faculty ?? data.user.unit ?? "—" }}</dd>
+              <dd>{{ sessionUser.faculty ?? sessionUser.unit ?? "—" }}</dd>
             </div>
-            <div v-if="data.user.faculty && data.user.unit" class="info-row">
+            <div v-if="sessionUser.faculty && sessionUser.unit" class="info-row">
               <dt>Unit / Direktorat</dt>
-              <dd>{{ data.user.unit }}</dd>
+              <dd>{{ sessionUser.unit }}</dd>
             </div>
-            <div v-if="data.user.study_program" class="info-row">
+            <div v-if="sessionUser.study_program" class="info-row">
               <dt>Program Studi</dt>
-              <dd>{{ data.user.study_program }}</dd>
+              <dd>{{ sessionUser.study_program }}</dd>
             </div>
-            <div v-if="data.user.jenjang" class="info-row">
+            <div v-if="sessionUser.jenjang" class="info-row">
               <dt>Jenjang</dt>
-              <dd>{{ data.user.jenjang }}</dd>
+              <dd>{{ sessionUser.jenjang }}</dd>
             </div>
           </dl>
         </div>

@@ -1,4 +1,5 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 definePageMeta({
   layout: "kunjungan",
   middleware: ["directus-auth"],

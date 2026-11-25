@@ -2,8 +2,8 @@
 // protect chat route
 definePageMeta({ middleware: "authentication-check" });
 
-const { status } = useAuth();
-const isReady = computed(() => status.value === "authenticated");
+const { loggedIn } = useUserSession();
+const isReady = computed(() => loggedIn.value);
 
 // placeholder reactive state for messages
 const messages = ref([

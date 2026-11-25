@@ -1,4 +1,7 @@
-const config = useRuntimeConfig();
+/** Resolve runtime config lazily — module-scope useRuntimeConfig() breaks SSR. */
+const runtimeConfig = () => useRuntimeConfig();
+
+const directusBaseUrl = () => runtimeConfig().public.directus.url;
 
 export const displayAgendaKegiatan = (slug: string) => {
   switch (slug) {
@@ -97,41 +100,27 @@ export const fetchTugasPegawai = (id: string) => {
 
 export const fetchDataPetugasPiket = async () => {
   const { data: dataPetugas } = await useFetch(
-    `${config.public.directus.url}items/piket_layanan`,
-    {
-      headers: {
-        Authorization: `Bearer ${config.public.directus.token}`,
-      },
-    }
+    `${directusBaseUrl()}/items/piket_layanan`,
   );
 
   return dataPetugas.value;
 };
 
 export const fetchUrlKoordinator = (id: string) => {
-  return `${config.public.directus.url}users/${id}`;
+  return `${directusBaseUrl()}/users/${id}`;
 };
 
 export const fetchUrlPegawai = (divisi: string) => {
-  return `${config.public.directus.url}users?filter[divisi][_eq]=${divisi}&filter[koordinator][_eq]=false`;
+  return `${directusBaseUrl()}/users?filter[divisi][_eq]=${divisi}&filter[koordinator][_eq]=false`;
 };
 
 export const fetchProfilPegawai = async (id: string) => {
   const { data: dataProfil } = await useFetch(
-    `${config.public.directus.url}users/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${config.public.directus.token}`,
-      },
-    }
+    `${directusBaseUrl()}/users/${id}`
   );
   return dataProfil;
 };
 
 export const useHeaderToken = () => {
-  return {
-    headers: {
-      Authorization: `Bearer ${config.public.directus.token}`,
-    },
-  };
+  return {};
 };

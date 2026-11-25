@@ -1,19 +1,20 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 definePageMeta({
   middleware: ["authentication-check"],
 });
 
-const { data } = useAuth();
+const { user } = useUserSession();
 const { $directus, $uploadFiles } = useNuxtApp();
-const { createItems, getItems } = useDirectusItems();
+const { createItems, getItems } = useDirectusItemsProxy();
 const dataFakultas = daftarNamaFakultasUnpad();
 
 const notification = ref("Silahkan isi seluruh form sesuai dengan data asli");
 const colorNotif = ref("text-dark");
 const isSubmitting = ref(false);
-const npm = ref(data.value?.user?.identifier ?? "");
-const namaLengkap = ref(data.value.user.name);
-const email = ref(data.value.user.email);
+const npm = ref(user.value?.identifier ?? "");
+const namaLengkap = ref(user.value.name);
+const email = ref(user.value.email);
 const fakultas = ref("");
 const prodi = ref("");
 const kontak = ref("");
@@ -126,7 +127,7 @@ const kirimPengajuan = async () => {
       notification.value = "Berhasil diajukan! Mengalihkan halaman...";
       npm.value = "";
       namaLengkap.value = "";
-      email.value = data.value.user.email;
+      email.value = user.value.email;
       kontak.value = "";
       fakultas.value = "";
       prodi.value = "";

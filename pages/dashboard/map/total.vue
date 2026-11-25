@@ -1,6 +1,7 @@
 <script setup>
 definePageMeta({
   layout: "dashboard",
+  middleware: ["directus-auth"],
 });
 
 const { getItems } = useDirectusItems();

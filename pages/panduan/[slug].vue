@@ -25,7 +25,7 @@ const dataLayanan = await getLayanan[0];
       />
     </div>
     <p>{{ dataLayanan.deskripsi_layanan }}</p>
-    <div v-html="dataLayanan.konten_layanan"></div>
+    <div v-html="sanitizeHtml(dataLayanan.konten_layanan)"></div>
     <div>
       <NuxtLink to="/panduan" class="btn bg-orange text-white">
         Kembali

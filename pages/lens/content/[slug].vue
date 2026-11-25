@@ -237,10 +237,9 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Content body -->
-          <!-- FIX: Removed <ClientOnly> (v-html is perfectly safe for SSR) and fixed typo 'rounded-2sxl' to 'rounded-2xl' -->
+          <!-- Content body (HTML is sanitized with DOMPurify before rendering) -->
           <div class="bg-white rounded-2xl shadow-sm border border-gray-2 p-6">
-            <div class="lens-content prose max-w-none" v-html="post.contents" />
+            <div class="lens-content prose max-w-none" v-html="sanitizeHtml(post.contents)" />
           </div>
 
           <!-- Instagram Embed -->

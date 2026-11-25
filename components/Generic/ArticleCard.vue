@@ -29,7 +29,7 @@ defineProps({
         {{ title }}
       </NuxtLink>
       <p class="article-excerpt">
-        <span v-html="trimDescription(description, 150)"></span>
+        <span v-html="sanitizeHtml(trimDescription(description, 150))"></span>
       </p>
       <div class="article-footer">
         <span class="article-date">

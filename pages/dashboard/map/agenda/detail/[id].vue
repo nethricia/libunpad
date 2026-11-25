@@ -1,6 +1,7 @@
 <script setup>
 definePageMeta({
   layout: "dashboard",
+  middleware: ["directus-auth"],
 });
 const route = useRoute();
 const router = useRouter();
@@ -33,7 +34,7 @@ const backButton = () => {
 
     <div class="bg-orange-1 p-2 my-2 rounded">
       <p class="font-600">Rincian kegiatan:</p>
-      <span v-html="detailAgenda.rincian_kegiatan"></span>
+      <span v-html="sanitizeHtml(detailAgenda.rincian_kegiatan)"></span>
     </div>
     <div class="bg-orange-1 p-2 my-2 rounded">
       <p class="font-600">Keterangan kegiatan:</p>

@@ -64,7 +64,7 @@ const koleksiTerseleksi = daftarKoleksiTerkait.filter(
             }}</span>
           </h5>
           <p>
-            <span class="text-justify" v-html="metaDataKoleksi.deskripsi" />
+            <span class="text-justify" v-html="sanitizeHtml(metaDataKoleksi.deskripsi)" />
           </p>
         </div>
       </div>

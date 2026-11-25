@@ -1,4 +1,5 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 const { getItemById, updateItem, deleteItems } = useDirectusItems();
 const { getUserById } = useDirectusUsers();
 const route = useRoute();
@@ -77,6 +78,7 @@ const deleteTugas = async () => {
 
 definePageMeta({
   layout: "dashboard",
+  middleware: ["directus-auth"],
 });
 </script>
 

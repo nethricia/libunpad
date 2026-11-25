@@ -3,7 +3,7 @@ definePageMeta({
   middleware: ["authentication-check"],
 });
 
-const { status, data, signOut } = useAuth();
+const { loggedIn, user, clear } = useUserSession();
 const { getItems } = useDirectusItems();
 const getAllDataBarangALH = await getItems({
   collection: "data_barang_alh",
@@ -20,13 +20,13 @@ const getJumlahDataBarang = getAllDataBarangALH.reduce((acc, item) => {
     <div class="text-center my-5 flex flex-col items-center">
       <h1>Daftar Barang ALH</h1>
       <img
-        v-if="data?.user?.image"
-        :src="data?.user?.image ?? '/images/no-image.jpg'"
+        v-if="user?.image"
+        :src="user?.image ?? '/images/no-image.jpg'"
         class="w-10 h-10 rounded-full cursor-pointer"
         alt="Foto User"
         referrerpolicy="no-referrer"
       />
-      <h5>👋 Halo, {{ data.user.name }}</h5>
+      <h5>👋 Halo, {{ user.name }}</h5>
       <p>Daftar barang yang ada di ruang ALH</p>
     </div>
     <div class="bg-yellow-1 rounded-xl p-5 my-5">

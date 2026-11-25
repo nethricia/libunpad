@@ -1,4 +1,5 @@
 <!-- <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 import { VuePDF, usePDF } from "@tato30/vue-pdf";
 import '@tato30/vue-pdf/style.css';
 
@@ -13,7 +14,7 @@ const submitter = getSubmitterData();
 const bearer = useCookie("dsAccessToken");
 const dSpaceToken = useCookie("X-XSRF-TOKEN");
 
-const { data } = useAuth();
+const { user } = useUserSession();
 const { updateItem } = useDirectusItems();
 const val = ref("Kelengkapan Berkas Tugas Akhir");
 const metadataNotes = ref("Mohon diperhatikan kembali data diatas! setelah anda mengklik tombol 'SIMPAN' maka anda tidak akan bisa mengubahnya kembali. Silahkan untuk diisi secara teliti dan perlahan agar mempermudah proses administrasi.")
@@ -41,7 +42,7 @@ const universalHeader = {
   }),
 }
 
-const getKelengkapanData = await fetchDspaceItemLogs(data.value.user.email);
+const getKelengkapanData = await fetchDspaceItemLogs(user.value.email);
 
 const getFakultas = await $fetch(
   fetchData(getKelengkapanData[0]?.id_fakultas ?? submitter.fakultas)

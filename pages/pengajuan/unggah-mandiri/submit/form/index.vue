@@ -1,4 +1,5 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 import { getSubmitterData } from '~/composables/dspaceKit';
 
 definePageMeta({
@@ -14,12 +15,12 @@ const collection = useCookie("programStudiKoleksi");
 const dSpaceToken = useCookie("X-XSRF-TOKEN");
 const bearer = useCookie("dsAccessToken");
 
-const { data } = useAuth();
+const { user } = useUserSession();
 const { createItems } = useDirectusItems();
 
 const submitLoading = ref(false);
 
-const getKelengkapanData = await fetchDspaceItemLogs(data.value.user.email)
+const getKelengkapanData = await fetchDspaceItemLogs(user.value.email)
 
 if (getKelengkapanData.length > 0 && getKelengkapanData[0]?.submitted === 'false') {
   await navigateTo("/pengajuan/unggah-mandiri/submit/form/kelengkapan")
@@ -28,7 +29,7 @@ if (getKelengkapanData.length > 0 && getKelengkapanData[0]?.submitted === 'false
 } else {
 }
 
-submitter.email = data.value.user.email
+submitter.email = user.value.email
 
 const communityUrl = config.public.dSpacePublic + '/core/communities/a9d392c7-cabd-44e5-9a06-d86281c307c2/subcommunities'
 
@@ -96,7 +97,7 @@ const nextSubmit = async () => {
         await createItems({
           collection: "log_dspace_items",
           items: {
-            email: data.value.user.email,
+            email: user.value.email,
             npm: submitter.npm,
             nama_lengkap: submitter.namaLengkap,
             id_fakultas: submitter.fakultas,

@@ -1,14 +1,14 @@
 <script setup>
 import { menuContent, mobileMenu } from "~/composables/navMenu";
 
-const { status, data, signOut } = useAuth();
+const { loggedIn, user, clear } = useUserSession();
 const menu = mobileMenu();
 const { layanan, tentang, koleksi, panduan } = menuContent();
 
 const logout = async () => {
   const dSpaceAccess = useCookie("dsAccessToken");
   dSpaceAccess.value = null;
-  await signOut();
+  await clear();
 };
 
 const viewTentang = () => {
@@ -115,18 +115,18 @@ const viewPanduan = () => {
         <NuxtLink class="menu-list hover-menu">Kontak</NuxtLink>
       </div>
       <div class="flex min-w-full flex-row items-center justify-center gap-2">
-        <NuxtLink to="/login" v-if="status === 'unauthenticated'">
+        <NuxtLink to="/login" v-if="!loggedIn">
           <button class="btn bg-unpad w-full text-white">Login</button>
         </NuxtLink>
-        <div v-else-if="status === 'authenticated'" class="flex gap-2">
+        <div v-else-if="loggedIn" class="flex gap-2">
           <img
-            :src="data.user.image"
+            :src="user.image"
             class="w-15 h-15 rounded-full"
             alt="Foto Profil"
           />
           <div class="text-sm">
-            <p>{{ data.user.name }}</p>
-            <p class="text-xs">{{ data.user.email }}</p>
+            <p>{{ user.name }}</p>
+            <p class="text-xs">{{ user.email }}</p>
             <div class="flex gap-1 mt-2">
               <NuxtLink to="/keanggotaan" class="btn bg-unpad text-white py-0"
                 >Keanggotaan</NuxtLink

@@ -111,11 +111,10 @@ const submitSearch = async (keyword) => {
   }
 
   try {
-    const scopusResults = await $fetch(scopus.baseURLSearch, {
+    const scopusResults = await $fetch("/api/v1/scopus/search", {
       query: {
         query: search.keywords,
         count: 12,
-        apiKey: "bffdfae1414b050c3f0027d3c6253301",
       },
     });
     search.isResult = true;
@@ -292,7 +291,7 @@ onMounted(() => {
               </h3>
             </NuxtLink>
             <p class="text-sm text-gray-6 leading-relaxed m-0 text-left">
-              <span v-html="search.wikipediaDefinition?.snippet"></span> ...
+              <span v-html="sanitizeHtml(search.wikipediaDefinition?.snippet)"></span> ...
               <NuxtLink :to="`https://id.wikipedia.org?curid=${search.wikipediaDefinition?.pageid}`" target="_blank"
                 class="text-unpad hover:underline font-500">
                 (baca selengkapnya)

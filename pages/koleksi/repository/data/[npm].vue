@@ -1,9 +1,18 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 const route = useRoute();
 const config = useRuntimeConfig();
-const { status, signIn, signOut, data } = useAuth();
+const { loggedIn, user, clear } = useUserSession();
+
+// PAuS / Google sign-in via nuxt-auth-utils routes
+const loginWithGoogle = async () => {
+  await navigateTo(
+    `/api/auth/callback/google?redirect=${encodeURIComponent(route.fullPath)}`,
+    { external: true },
+  );
+};
 const fakultas = daftarNamaFakultasUnpad();
-const { getItemById } = useDirectusItems();
+const { getItemById } = useDirectusItemsProxy();
 const { getFiles } = useDirectusFiles();
 
 const accessText = ref("");
@@ -68,7 +77,7 @@ const makeFileUrl = (fileId) => {
   if (!fileId || fileId === "undefined") {
     return null;
   }
-  return `${config.directusUrl}assets/${fileId}`;
+  return `${config.public.directusPublicUrl}assets/${fileId}`;
 };
 
 const dataObjectTA = {
@@ -100,13 +109,13 @@ const dataObjectTA = {
     <h3 class="title">Koleksi Repository Universitas Padjadjaran</h3>
     <div class="text-center mb-3 flex items-center justify-center">
       <!-- Sudah Login -->
-      <div class="info-auth" v-if="status === 'authenticated'">
+      <div class="info-auth" v-if="loggedIn">
         <div class="flex items-center gap-1">
           <div class="auth-true" />
-          <p class="text-xs">Selamat Datang, {{ data.user.email }}</p>
+          <p class="text-xs">Selamat Datang, {{ user.email }}</p>
         </div>
 
-        <button @click="signOut" class="btn-auth bg-red">Logout</button>
+        <button @click="clear" class="btn-auth bg-red">Logout</button>
       </div>
       <!-- Belum Login -->
       <div class="info-auth" v-else>
@@ -120,7 +129,7 @@ const dataObjectTA = {
             <span class="text-unpad font-semibold">Unpad</span>!
           </p>
         </div>
-        <button @click="signIn('google')" class="btn-auth bg-unpad">
+        <button @click="loginWithGoogle" class="btn-auth bg-unpad">
           Klik untuk Login
         </button>
       </div>

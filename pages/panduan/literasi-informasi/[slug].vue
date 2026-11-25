@@ -37,7 +37,7 @@ const authorName = `${getAuthorData.first_name} ${getAuthorData.last_name}`;
           <img :src="url + '/assets/' + literasiContent.featured_image" alt="Literasi Informasi"
             class="w-full max-h-xs object-cover" />
         </div>
-        <span v-html="literasiContent.konten"></span>
+        <span v-html="sanitizeHtml(literasiContent.konten)"></span>
       </div>
     </div>
     <div class="mt-5 text-center">

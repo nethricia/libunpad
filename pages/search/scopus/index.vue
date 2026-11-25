@@ -4,12 +4,11 @@ const searchScopus = useSearchScopus();
 const submitSearchScopus = async (terms) => {
   try {
     const { data: scopusResults } = await useFetch(
-      "https://api.elsevier.com/content/search/scopus",
+      "/api/v1/scopus/search",
       {
         query: {
           query: terms,
           count: 6,
-          apiKey: "bffdfae1414b050c3f0027d3c6253301",
         },
       }
     );

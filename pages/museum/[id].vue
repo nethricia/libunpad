@@ -72,7 +72,7 @@ const getMuseumCollection = await getItemById({
           </tr>
         </tbody>
       </table>
-      <div v-html="getMuseumCollection.keterangan_koleksi"></div>
+      <div v-html="sanitizeHtml(getMuseumCollection.keterangan_koleksi)"></div>
     </div>
     <div class="my-10 text-center">
       <NuxtLink to="/museum" class="btn bg-orange text-white py-1">

@@ -1,5 +1,4 @@
 <script setup>
-const { createItems } = useDirectusItems();
 const token = ref();
 
 const namaLengkap = ref(null);
@@ -8,32 +7,35 @@ const email = ref(null);
 const pesan = ref(null);
 
 const sendMessage = async () => {
-  if (token.value) {
-    if (namaLengkap && email && pesan) {
-      isLoad.value = true;
-      await createItems({
-        collection: "pesan_kontak_kandaga",
-        items: [
-          {
-            nama_lengkap: namaLengkap.value,
-            email: email.value,
-            pesan: pesan.value,
-          },
-        ],
-      }).then(() => {
-        alert("Pesan Terkirim!");
-        namaLengkap.value = null;
-        email.value = null;
-        pesan.value = null;
-        isLoad.value = false;
-      });
-    } else {
-      alert("Form Harus Diisi!");
-      return;
-    }
-  } else {
+  if (!token.value) {
     alert("Token Harus Diisi!");
     return;
+  }
+  if (!namaLengkap.value || !email.value || !pesan.value) {
+    alert("Form Harus Diisi!");
+    return;
+  }
+
+  isLoad.value = true;
+  try {
+    // Verified server-side (Turnstile) before the message is stored.
+    await $fetch("/api/v1/kontak", {
+      method: "POST",
+      body: {
+        nama_lengkap: namaLengkap.value,
+        email: email.value,
+        pesan: pesan.value,
+        turnstileToken: token.value,
+      },
+    });
+    alert("Pesan Terkirim!");
+    namaLengkap.value = null;
+    email.value = null;
+    pesan.value = null;
+  } catch (error) {
+    alert(error?.data?.message ?? "Pesan gagal dikirim. Silakan coba lagi.");
+  } finally {
+    isLoad.value = false;
   }
 };
 </script>

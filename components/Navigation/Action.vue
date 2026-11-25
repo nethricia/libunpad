@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { mobileMenu } from "~/composables/navMenu";
 
-const { status, signOut, data } = useAuth();
+const { loggedIn, user, clear } = useUserSession();
 const emit = defineEmits(["toggle"]);
 const menuState = mobileMenu();
 const viewDropdown = ref(false);
@@ -17,7 +17,7 @@ const toggleProfile = () => {
 const logout = async () => {
   const dSpaceAccess = useCookie("dsAccessToken");
   dSpaceAccess.value = null;
-  await signOut();
+  await clear();
 };
 </script>
 
@@ -31,10 +31,10 @@ const logout = async () => {
     >
       <div class="i-mdi-calendar-clock bg-dark" />
     </button>
-    <div v-if="status === 'authenticated'" class="relative hidden xl:block">
+    <div v-if="loggedIn" class="relative hidden xl:block">
       <img
-        v-if="data?.user?.image"
-        :src="data?.user?.image"
+        v-if="user?.image"
+        :src="user?.image"
         class="w-10 h-10 rounded-full cursor-pointer"
         alt="Foto User"
         referrerpolicy="no-referrer"
@@ -55,8 +55,8 @@ const logout = async () => {
         :tabindex="-1"
         @pointerleave="viewDropdown = false"
       >
-        <p>{{ data?.user?.name }}</p>
-        <p class="text-xs">{{ data?.user?.email }}</p>
+        <p>{{ user?.name }}</p>
+        <p class="text-xs">{{ user?.email }}</p>
         <div class="grid grid-cols-2 mt-2">
           <NuxtLink
             to="/keanggotaan"

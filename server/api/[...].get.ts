@@ -1,11 +1,10 @@
-export default defineEventHandler((event) => {
-  const firstNumber: number = 50;
-
-  return {
-    status: "API Responded",
-    randomNumber: Math.floor(Math.random() * firstNumber * 1000),
-    developerName: "Chrisna Adhi Pranoto",
-    yourPath: "The Path is: " + event.node.req.url,
-    statusCode: event.node.res.statusCode,
-  };
+/**
+ * Catch-all for unmatched /api routes.
+ *
+ * Previously returned HTTP 200 with the reflected request URL and a developer
+ * name, which masked probing and polluted monitoring. Unknown API paths are a
+ * 404.
+ */
+export default defineEventHandler(() => {
+  throw createError({ statusCode: 404, message: "Not found" });
 });

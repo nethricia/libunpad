@@ -58,20 +58,22 @@ const options = {
       </div>
     </div>
   </section>
-  <Splide :options="options" class="inline md:hidden">
-    <SplideSlide v-for="buku in bookItems.results">
-      <CollectionBookCard
-        :key="buku.id"
-        :title="buku.judul"
-        :author="buku.author"
-        :description="buku.description"
-        :banner="buku.tipe"
-        :cover="buku.cover"
-        :url-book="route.path + '/buku/' + buku?.slugs"
-        :banner-color="backgroundBanner(buku.tipe)"
-      />
-    </SplideSlide>
-  </Splide>
+  <ClientOnly>
+    <Splide :options="options" class="inline md:hidden">
+      <SplideSlide v-for="buku in bookItems.results">
+        <CollectionBookCard
+          :key="buku.id"
+          :title="buku.judul"
+          :author="buku.author"
+          :description="buku.description"
+          :banner="buku.tipe"
+          :cover="buku.cover"
+          :url-book="route.path + '/buku/' + buku?.slugs"
+          :banner-color="backgroundBanner(buku.tipe)"
+        />
+      </SplideSlide>
+    </Splide>
+  </ClientOnly>
 </template>
 
 <style scoped>

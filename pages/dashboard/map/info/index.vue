@@ -17,6 +17,7 @@ const getProfileImage = computed(() => {
 
 definePageMeta({
   layout: "dashboard",
+  middleware: ["directus-auth"],
 });
 </script>
 

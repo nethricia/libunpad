@@ -1,6 +1,6 @@
 <script setup>
 const { getItems } = useDirectusItems();
-const { getThumbnail: img } = useDirectusFiles();
+const img = (id) => directusImageUrl(id);
 
 const val = ref("Dukungan Riset Kandaga");
 const daataLayananRiset = await getItems({
@@ -30,7 +30,7 @@ const daataLayananRiset = await getItems({
       ></div>
     </div>
     <div class="max-w-7xl ma py-10">
-      <div id="contents" v-html="daataLayananRiset.konten" class="px-25" />
+      <div id="contents" v-html="sanitizeHtml(daataLayananRiset.konten)" class="px-25" />
     </div>
   </section>
 </template>

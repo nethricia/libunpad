@@ -1,22 +1,14 @@
 import { defineStore } from "pinia";
 
-export const getCSRFToken = async () => {
-  const dSpaceToken = useCookie("X-XSRF-TOKEN");
-  const config = useRuntimeConfig();
-
-  if (import.meta.client) {
-    await $fetch(config.public.dSpacePublic, {
-      method: "GET",
-      credentials: "include",
-      onResponse({ response }) {
-        if (!dSpaceToken.value && response.headers.get("dspace-xsrf-token")) {
-          dSpaceToken.value = response.headers.get("dspace-xsrf-token");
-        }
-      },
-    });
-  }
-};
-
+/**
+ * Submitter details shared across the ETD upload steps.
+ *
+ * NOTE: the previous DSpace helpers in this file (CSRF token, workspace
+ * fetches) were removed. They ran in the browser with a bearer token read from
+ * a JS-accessible cookie, and no active page uses them. If the DSpace
+ * submission flow is revived, it must go through a server route that keeps the
+ * token (and any service credentials) off the client.
+ */
 export const getSubmitterData = defineStore("submitterData", () => {
   const namaLengkap = ref("");
   const npm = ref("");
@@ -34,40 +26,3 @@ export const getSubmitterData = defineStore("submitterData", () => {
     jenjang,
   };
 });
-
-export const fetchWorkspaceItem = async (workspaceid: string) => {
-  const config = useRuntimeConfig();
-  const bearer = useCookie("dsAccessToken");
-  const dSpaceToken = useCookie("X-XSRF-TOKEN");
-  const results = await $fetch(
-    `${config.public.dSpacePublic}/submission/workspaceitems/${workspaceid}/item`,
-    {
-      credentials: "include",
-      headers: new Headers({
-        //@ts-expect-error
-        Authorization: "Bearer " + bearer.value.accessToken,
-        "X-XSRF-TOKEN": `${dSpaceToken.value}`,
-      }),
-    }
-  );
-  return results;
-};
-
-export const fetchWorkspaceFiles = async (workspaceid: string) => {
-  const config = useRuntimeConfig();
-  const bearer = useCookie("dsAccessToken");
-  const dSpaceToken = useCookie("X-XSRF-TOKEN");
-  const results = await $fetch(
-    `${config.public.dSpacePublic}/submission/workspaceitems/${workspaceid}`,
-    {
-      credentials: "include",
-      headers: new Headers({
-        //@ts-expect-error
-        Authorization: "Bearer " + bearer.value.accessToken,
-        "X-XSRF-TOKEN": `${dSpaceToken.value}`,
-      }),
-    }
-  );
-
-  return results;
-};

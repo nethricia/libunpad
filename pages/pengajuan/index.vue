@@ -1,5 +1,5 @@
 <script setup>
-const { data } = useAuth();
+const { user: sessionUser } = useUserSession();
 const user = useDirectusUser();
 const { data: fetchService } = await useFetch("/api/v1/layanan");
 </script>
@@ -22,8 +22,8 @@ const { data: fetchService } = await useFetch("/api/v1/layanan");
               class="w-24 h-24 object-cover rounded-2xl border-4 border-white/60 shadow-lg"
             />
             <NuxtImg
-              v-else-if="data?.user?.image"
-              :src="data.user.image"
+              v-else-if="sessionUser?.image"
+              :src="sessionUser.image"
               class="w-24 h-24 rounded-2xl border-4 border-white/60 shadow-lg object-cover"
             />
             <div
@@ -44,7 +44,7 @@ const { data: fetchService } = await useFetch("/api/v1/layanan");
                 user
                   ? `${user.first_name}!`
                   : data
-                  ? data?.user?.name
+                  ? sessionUser?.name
                   : "Pengunjung!"
               }}
             </h1>

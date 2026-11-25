@@ -82,7 +82,7 @@ const namaPenulis = `${getPenulis.first_name} ${getPenulis.last_name}`;
       <article class="article-body">
         <div
           class="article-prose konten-berita"
-          v-html="berita[0].konten_artikel ?? berita[0].konten_berita"
+          v-html="sanitizeHtml(berita[0].konten_artikel ?? berita[0].konten_berita)"
         />
         <p class="updated-note">
           <span class="i-mdi-clock-edit-outline w-3.5 h-3.5" />

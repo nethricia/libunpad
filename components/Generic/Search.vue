@@ -95,7 +95,7 @@ const limitChars = (str) => {
                 </h1>
               </NuxtLink>
               <p class="text-sm text-gray">
-                <span v-html="limitChars(elem.snippet)"></span>...
+                <span v-html="sanitizeHtml(limitChars(elem.snippet))"></span>...
                 <NuxtLink
                   :to="`https://id.wikipedia.org?curid=${elem.pageid}`"
                   class="no-underline"

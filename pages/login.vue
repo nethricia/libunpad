@@ -1,6 +1,6 @@
 <script setup>
 const { login } = useDirectusAuth();
-const { signIn, status } = useAuth();
+const { loggedIn } = useUserSession();
 const user = useDirectusUser();
 const error = useError();
 const route = useRoute();
@@ -14,6 +14,16 @@ const defaultLoginNotif = ref(
 );
 const loginNotif = ref(defaultLoginNotif.value);
 const textLogin = ref("text-slate-700");
+
+/** Same-origin relative paths only — blocks open redirect via ?redir=. */
+const safeRedir = (fallback = "/") => {
+  const rawRedir = route.query.redir;
+  return typeof rawRedir === "string" &&
+    rawRedir.startsWith("/") &&
+    !rawRedir.startsWith("//")
+    ? rawRedir
+    : fallback;
+};
 
 const togglePasswordType = () => {
   showPassword.value = !showPassword.value;
@@ -40,11 +50,11 @@ const submitLogin = async () => {
     textLogin.value = "text-emerald-700 font-semibold";
     loginNotif.value = "Berhasil masuk! Mengalihkan ke dashboard...";
 
-    const { redir } = route.query;
+    // Only allow same-origin relative redirects (prevents open redirect).
+    const redir = safeRedir("/dashboard");
+
     setTimeout(async () => {
-      await navigateTo(redir ?? "/dashboard", {
-        redirectCode: redir ? 200 : 301,
-      });
+      await navigateTo(redir, { redirectCode: redir !== "/dashboard" ? 200 : 301 });
     }, 1400);
   } catch (err) {
     textLogin.value = "text-red-600 font-semibold";
@@ -65,27 +75,27 @@ const submitLogin = async () => {
 };
 
 const googleLogin = async () => {
-  await signIn("google", { callbackUrl: route.query.redir ?? "/" });
+  await navigateTo(
+    `/api/auth/callback/google?redirect=${encodeURIComponent(safeRedir())}`,
+    { external: true },
+  );
 };
 
 const pausLogin = async () => {
-  await signIn("paus", { callbackUrl: route.query.redir ?? "/" });
+  await navigateTo(
+    `/api/auth/callback/paus?redirect=${encodeURIComponent(safeRedir())}`,
+    { external: true },
+  );
 };
 
 const errorLogger = () => {
   console.error(error.value);
 };
 
-if (status.value === "authenticated") {
+// Already signed in (e.g. returning to /login) -> go home.
+if (loggedIn.value) {
   await navigateTo("/");
 }
-
-definePageMeta({
-  auth: {
-    unauthenticatedOnly: true,
-    navigateAuthenticatedTo: "/",
-  },
-});
 </script>
 
 <template>

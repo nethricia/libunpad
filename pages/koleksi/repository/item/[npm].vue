@@ -1,10 +1,19 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 import { computed } from "vue";
 const route = useRoute();
-const { status, signIn, signOut, data } = useAuth();
-const { getItemById } = useDirectusItems();
+const { loggedIn, user, clear } = useUserSession();
+
+// PAuS / Google sign-in via nuxt-auth-utils routes
+const loginWithGoogle = async () => {
+  await navigateTo(
+    `/api/auth/callback/google?redirect=${encodeURIComponent(route.fullPath)}`,
+    { external: true },
+  );
+};
+const { getItemById } = useDirectusItemsProxy();
 const fakultas = daftarNamaFakultasUnpad();
-const isAuthenticated = computed(() => status.value === "authenticated");
+const isAuthenticated = computed(() => loggedIn.value);
 
 const allowedPublicNPM = [
   // Add NPM values here that should bypass protected-file login restrictions
@@ -265,18 +274,18 @@ useHead({
     <div class="max-w-6xl ma px-4 -mt-8 relative z-10 mb-6">
       <div
         :class="
-          status === 'authenticated'
+          loggedIn
             ? 'bg-green-50 border-green-2'
             : 'bg-white border-gray-2'
         "
         class="rounded-2xl shadow-lg border p-4 flex flex-col sm:flex-row items-center justify-between gap-3"
       >
         <!-- Authenticated -->
-        <div v-if="status === 'authenticated'" class="flex items-center gap-3">
+        <div v-if="loggedIn" class="flex items-center gap-3">
           <div class="i-mdi-lock-open-check w-6 h-6 text-green-6 shrink-0" />
           <div>
             <p class="font-600 text-green-8 text-sm">Akses Penuh Tersedia</p>
-            <p class="text-green-6 text-xs">{{ data.user.email }}</p>
+            <p class="text-green-6 text-xs">{{ user.email }}</p>
           </div>
         </div>
         <!-- Not authenticated -->
@@ -293,9 +302,9 @@ useHead({
         </div>
 
         <!-- Action button -->
-        <div v-if="status === 'authenticated'">
+        <div v-if="loggedIn">
           <button
-            @click="signOut"
+            @click="clear"
             class="btn bg-red-5 text-white text-xs py-1.5 px-4 hover:bg-red-6 transition-colors"
           >
             Logout
@@ -371,7 +380,7 @@ useHead({
           >
             <p
               class="text-sm text-gray-7 leading-relaxed"
-              v-html="formattedAPA"
+              v-html="sanitizeHtml(formattedAPA)"
             />
             <div
               class="i-mdi-content-copy w-4 h-4 text-gray-4 group-hover:text-unpad shrink-0 transition-colors mt-0.5"
@@ -391,7 +400,7 @@ useHead({
           >
             <p
               class="text-sm text-gray-7 leading-relaxed"
-              v-html="formattedChicago"
+              v-html="sanitizeHtml(formattedChicago)"
             />
             <div
               class="i-mdi-content-copy w-4 h-4 text-gray-4 group-hover:text-unpad shrink-0 transition-colors mt-0.5"

@@ -1,0 +1,18 @@
+# Single-package workspace.
+#
+# `packages` is required: pnpm 9 refuses to install when a workspace file has
+# no `packages` field ("packages field missing or empty"), which is what broke
+# the production build previously.
+#
+# `allowBuilds` is required by pnpm 10+: install fails with
+# ERR_PNPM_IGNORED_BUILDS unless native/postinstall scripts are approved.
+# It is NOT recorded in pnpm-lock.yaml, so it cannot cause a
+# LOCKFILE_CONFIG_MISMATCH (that only happens with `overrides`).
+packages:
+  - "."
+
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  protobufjs: true
+  sharp: true

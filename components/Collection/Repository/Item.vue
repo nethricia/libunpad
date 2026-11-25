@@ -205,7 +205,7 @@ const limitText = (text) => {
             Abstrak
           </h6>
           <p class="text-sm text-gray-6 text-justify leading-relaxed">
-            <span v-html="abstrak"></span>
+            <span v-html="sanitizeHtml(abstrak)"></span>
           </p>
         </div>
       </div>

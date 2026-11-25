@@ -3,6 +3,7 @@ const route = useRoute();
 
 definePageMeta({
   layout: "dashboard",
+  middleware: ["directus-auth"],
 });
 </script>
 

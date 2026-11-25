@@ -1,6 +1,6 @@
 <script setup>
 const { getSingletonItem } = useDirectusItems();
-const { getThumbnail: img } = useDirectusFiles();
+const img = (id) => directusImageUrl(id);
 
 const val = ref("Regulasi Kandaga");
 const regulasiKandaga = await getSingletonItem({
@@ -36,7 +36,7 @@ const regulasiKandaga = await getSingletonItem({
     <div class="content-wrap">
       <div
         id="contents"
-        v-html="regulasiKandaga.konten"
+        v-html="sanitizeHtml(regulasiKandaga.konten)"
         class="prose-content"
       />
     </div>

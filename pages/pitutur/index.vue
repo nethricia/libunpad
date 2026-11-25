@@ -2,8 +2,8 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 // marketing/landing page for Pitutur feature
-const { status } = useAuth();
-const isLoggedIn = computed(() => status.value === "authenticated");
+const { loggedIn } = useUserSession();
+const isLoggedIn = computed(() => loggedIn.value);
 const router = useRouter();
 
 const { getItems } = useDirectusItems();

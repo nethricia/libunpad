@@ -53,11 +53,8 @@ const prevData = () => {
 };
 
 const { data: dataPetugas, error: petugasError } = await useFetch(
-  `${config.public.directus.url}users`,
+  `${config.public.directus.url}/users`,
   {
-    headers: {
-      Authorization: `Bearer ${config.public.directus.token}`,
-    },
     transform: (res) => res?.data ?? [],
   }
 );

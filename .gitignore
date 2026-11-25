@@ -33,6 +33,7 @@ localhost-key.pem
 
 # shell update build
 *.sh
-pnpm-workspace.yaml
 
 swagger.json
+# Local agent artifacts (not for the repo)
+.commandcode

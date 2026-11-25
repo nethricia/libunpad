@@ -8,13 +8,22 @@ const { cariFakultasAbbrevation } = fakultas;
 const route = useRoute();
 const suratSection = ref(null);
 
-const getDataSurat = await getItemById({
-    collection: "pengajuan_pemeriksaan_turnitin",
-    id: route.params.nomor,
-});
+// Letters are only readable by their owner. The server route enforces ownership.
+const getDataSurat = await $fetch("/api/v1/pengajuan/surat", {
+  query: { jenis: "pemeriksaan-turnitin", id: route.params.nomor },
+}).catch(() => null);
+
+if (!getDataSurat) {
+  throw createError({
+    statusCode: 403,
+    statusMessage:
+      "Surat hanya dapat diakses oleh pemiliknya. Silakan masuk terlebih dahulu.",
+    fatal: true,
+  });
+}
 
 const getDataPegawai = await getUserById({
-    id: getDataSurat.user_updated,
+  id: getDataSurat.user_updated,
 });
 
 const date = new Date();

@@ -1,4 +1,8 @@
-<script setup></script>
+<script setup>
+definePageMeta({
+  middleware: ["directus-auth"],
+});
+</script>
 
 <template>
   <main class="min-h-screen bg-gray-50">

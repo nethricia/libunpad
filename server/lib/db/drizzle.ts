@@ -12,6 +12,16 @@ if (runtimeConfig.dbHost) {
     database: runtimeConfig.dbName,
     password: runtimeConfig.dbPassword,
     port: Number(runtimeConfig.dbPort),
+    // TLS when enabled (KANDAGA_DRIZZLE_SSL=true). Verify the server cert.
+    ...(runtimeConfig.dbSsl
+      ? { ssl: { rejectUnauthorized: true } }
+      : {}),
+    // Bound the pool and fail fast instead of queueing forever.
+    connectionLimit: Number(runtimeConfig.dbConnectionLimit ?? 10),
+    waitForConnections: true,
+    queueLimit: 0,
+    connectTimeout: 10_000,
+    enableKeepAlive: true,
   });
 
   db = drizzle(connection);

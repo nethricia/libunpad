@@ -2,7 +2,7 @@
 const route = useRoute();
 
 const { getItemById } = useDirectusItems();
-const { getThumbnail } = useDirectusFiles();
+const getThumbnail = (id) => directusImageUrl(id);
 const getArchiveCollection = await getItemById({
   collection: "koleksi_archive",
   id: route.params.id,
@@ -75,7 +75,7 @@ const getArchiveCollection = await getItemById({
       </table>
       <div
         class="content-data"
-        v-html="getArchiveCollection.keterangan_koleksi"
+        v-html="sanitizeHtml(getArchiveCollection.keterangan_koleksi)"
       ></div>
     </div>
     <div class="my-10 text-center">

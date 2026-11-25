@@ -1,16 +1,17 @@
 <script setup>
+import { useDirectusItemsProxy } from "~/composables/useDirectusItemsProxy";
 definePageMeta({
   middleware: ["authentication-check"],
 });
-const { createItems, getItems } = useDirectusItems();
+const { createItems, getItems } = useDirectusItemsProxy();
 const dataFakultas = daftarNamaFakultasUnpad();
-const { data } = useAuth();
+const { user } = useUserSession();
 
-const npm = ref(data.value?.user?.identifier ?? "");
+const npm = ref(user.value?.identifier ?? "");
 const notification = ref("Silahkan isi seluruh form sesuai dengan data asli");
 const textNotif = ref("text-dark");
-const namaLengkap = ref(data.value.user.name);
-const email = ref(data.value.user.email);
+const namaLengkap = ref(user.value.name);
+const email = ref(user.value.email);
 const fakultas = ref("");
 const prodi = ref("");
 const kontak = ref("");
@@ -19,14 +20,16 @@ const emailPattern = /[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/;
 
 const checkDuplicateSubmission = async () => {
   const isDuplicated = ref(false);
+  // SSR requests do not carry the session cookie, so a gated read can 401
+  // during server rendering; it is retried on hydration (cookies present).
   const getData = await getItems({
     collection: "pengajuan_surat_bebas_pustaka",
     params: {
       filter: {
-        email: data.value.user.email,
+        email: user.value.email,
       },
     },
-  });
+  }).catch(() => []);
 
   if (getData.length > 0) {
     isDuplicated.value = true;

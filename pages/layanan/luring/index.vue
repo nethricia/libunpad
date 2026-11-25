@@ -29,7 +29,7 @@ const dataLayananLuring = await getItems({
       ></div>
     </div>
     <div class="max-w-7xl ma py-20">
-      <div id="contents" v-html="dataLayananLuring.konten" class="px-25" />
+      <div id="contents" v-html="sanitizeHtml(dataLayananLuring.konten)" class="px-25" />
     </div>
   </section>
 </template>
