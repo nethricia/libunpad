@@ -114,6 +114,12 @@ export default defineNuxtConfig({
     pustakaLocalApiUrl: process.env.KANDAGA_PUSTAKA_LOCAL_API_URL,
     pustakaLocalApiKey: process.env.KANDAGA_PUSTAKA_LOCAL_API_KEY,
     directusUrl: process.env.KANDAGA_DIRECTUS_BASE_URL,
+    // Optional server-only Directus address. The public URL points at
+    // https://…/backoffice, so proxying through it makes the server call back
+    // out through Cloudflare (slow, and subject to Cloudflare upload/timeout
+    // limits). Set this to the origin (e.g. http://127.0.0.1:8055) so the
+    // server talks to Directus directly while browsers keep the public URL.
+    directusInternalUrl: process.env.KANDAGA_DIRECTUS_INTERNAL_URL,
     directusAuthToken: process.env.KANDAGA_DIRECTUS_ACCESS_TOKEN,
     dbHost: process.env.KANDAGA_DRIZZLE_HOST,
     dbUsername: process.env.KANDAGA_DRIZZLE_USERNAME,

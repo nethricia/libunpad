@@ -6,14 +6,16 @@
  */
 const CSP = [
   "default-src 'self'",
-  // Nuxt needs inline bootstrap scripts; Turnstile, Instagram, YouTube, GA.
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.instagram.com https://www.youtube-nocookie.com https://www.googletagmanager.com https://www.google-analytics.com",
+  // Nuxt needs inline bootstrap scripts; Turnstile, Instagram, YouTube, GA,
+  // Cloudflare Web Analytics and the Tawk.to live-chat widget.
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://embed.tawk.to https://www.instagram.com https://www.youtube-nocookie.com https://www.googletagmanager.com https://www.google-analytics.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
   "media-src 'self' https:",
-  "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://drive.google.com https://www.instagram.com",
-  "connect-src 'self' https:",
+  "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://drive.google.com https://www.instagram.com https://tawk.to",
+  // `https:` does not cover websockets, and Tawk.to chats over wss://.
+  "connect-src 'self' https: wss://*.tawk.to",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
